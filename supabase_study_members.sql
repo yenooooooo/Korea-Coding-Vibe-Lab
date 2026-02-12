@@ -19,26 +19,26 @@ create table if not exists study_group_members (
   unique(group_id, user_id)
 );
 
--- 2. RLS 활성화 및 정책 설정
+-- 2. RLS 활성화 및 정책 설정 (기존 정책 삭제 후 재생성)
 alter table study_group_members enable row level security;
 
--- 누구나 조회 가능
+drop policy if exists "Members are public" on study_group_members;
 create policy "Members are public" on study_group_members for select using (true);
 
--- 인증 사용자가 참여 신청 가능
+drop policy if exists "Auth users can request join" on study_group_members;
 create policy "Auth users can request join" on study_group_members for insert with check (auth.uid() = user_id);
 
--- 본인 탈퇴 가능
+drop policy if exists "Users can leave" on study_group_members;
 create policy "Users can leave" on study_group_members for delete using (auth.uid() = user_id);
 
--- 방장이 멤버 상태 변경(승인/거절) 가능
+drop policy if exists "Owners can manage members" on study_group_members;
 create policy "Owners can manage members" on study_group_members for update using (
   exists (
     select 1 from study_groups where id = study_group_members.group_id and owner_id = auth.uid()
   )
 );
 
--- 방장이 멤버 삭제(강퇴) 가능
+drop policy if exists "Owners can kick members" on study_group_members;
 create policy "Owners can kick members" on study_group_members for delete using (
   exists (
     select 1 from study_groups where id = study_group_members.group_id and owner_id = auth.uid()

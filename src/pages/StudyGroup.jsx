@@ -38,7 +38,7 @@ const StudyGroup = () => {
         const today = new Date().toISOString().split('T')[0];
         const { data, error } = await supabase
             .from('attendance')
-            .select('user_id, vibe_status, check_in_date, profiles(nickname, vibe_color, avatar_url)')
+            .select('user_id, vibe_status, check_in_date, profiles(username, vibe_color, avatar_url)')
             .eq('check_in_date', today)
             .limit(10);
 
@@ -50,7 +50,7 @@ const StudyGroup = () => {
     const fetchStudyGroups = async () => {
         const { data, error } = await supabase
             .from('study_groups')
-            .select('*, profiles(nickname, avatar_url)')
+            .select('*, profiles(username, avatar_url)')
             .eq('is_active', true)
             .order('created_at', { ascending: false });
 
@@ -82,7 +82,7 @@ const StudyGroup = () => {
         // 승인된 멤버 조회
         const { data: members } = await supabase
             .from('study_group_members')
-            .select('*, profiles(nickname, avatar_url)')
+            .select('*, profiles(username, avatar_url)')
             .eq('group_id', group.id)
             .eq('status', 'approved')
             .order('joined_at', { ascending: true });
@@ -93,7 +93,7 @@ const StudyGroup = () => {
         if (user && group.owner_id === user.id) {
             const { data: pending } = await supabase
                 .from('study_group_members')
-                .select('*, profiles(nickname, avatar_url)')
+                .select('*, profiles(username, avatar_url)')
                 .eq('group_id', group.id)
                 .eq('status', 'pending')
                 .order('joined_at', { ascending: true });
@@ -171,7 +171,7 @@ const StudyGroup = () => {
             // 최신 그룹 정보 반영
             const { data: updatedGroup } = await supabase
                 .from('study_groups')
-                .select('*, profiles(nickname, avatar_url)')
+                .select('*, profiles(username, avatar_url)')
                 .eq('id', groupId)
                 .single();
             if (updatedGroup) setSelectedGroup(updatedGroup);
@@ -204,7 +204,7 @@ const StudyGroup = () => {
             fetchStudyGroups();
             const { data: updatedGroup } = await supabase
                 .from('study_groups')
-                .select('*, profiles(nickname, avatar_url)')
+                .select('*, profiles(username, avatar_url)')
                 .eq('id', groupId)
                 .single();
             if (updatedGroup) setSelectedGroup(updatedGroup);
@@ -257,7 +257,7 @@ const StudyGroup = () => {
         if (!error) {
             const { data: updatedGroup } = await supabase
                 .from('study_groups')
-                .select('*, profiles(nickname, avatar_url)')
+                .select('*, profiles(username, avatar_url)')
                 .eq('id', selectedGroup.id)
                 .single();
             if (updatedGroup) setSelectedGroup(updatedGroup);
@@ -371,9 +371,9 @@ const StudyGroup = () => {
                                 position: 'relative'
                             }}>
                                 {u.profiles?.avatar_url ? (
-                                    <img src={u.profiles.avatar_url} alt={u.profiles.nickname} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                                    <img src={u.profiles.avatar_url} alt={u.profiles.username} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                                 ) : (
-                                    u.profiles?.nickname?.[0]
+                                    u.profiles?.username?.[0]
                                 )}
                                 <div style={{
                                     position: 'absolute', bottom: 0, right: 0,
@@ -384,7 +384,7 @@ const StudyGroup = () => {
                                 }} />
                             </div>
                             <div style={{ fontSize: '0.8rem', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {u.profiles?.nickname}
+                                {u.profiles?.username}
                             </div>
                             <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{u.vibe_status}</div>
                         </div>
@@ -450,7 +450,7 @@ const StudyGroup = () => {
                                     <img src={group.profiles.avatar_url} alt="Owner" style={{ width: '20px', height: '20px', borderRadius: '50%' }} />
                                 )}
                                 <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
-                                    by {group.profiles?.nickname}
+                                    by {group.profiles?.username}
                                 </span>
                             </div>
                         </div>
@@ -531,7 +531,7 @@ const StudyGroup = () => {
                                             <img src={selectedGroup.profiles.avatar_url} alt="Owner" style={{ width: '36px', height: '36px', borderRadius: '50%' }} />
                                         )}
                                         <div>
-                                            <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>by {selectedGroup.profiles?.nickname}</span>
+                                            <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>by {selectedGroup.profiles?.username}</span>
                                         </div>
                                         <span style={{
                                             background: selectedGroup.current_members >= selectedGroup.max_members ? 'rgba(239, 68, 68, 0.15)' : 'rgba(99, 102, 241, 0.15)',
@@ -635,10 +635,10 @@ const StudyGroup = () => {
                                             <img src={selectedGroup.profiles.avatar_url} alt="Owner" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                                         ) : (
                                             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                                {selectedGroup.profiles?.nickname?.[0]}
+                                                {selectedGroup.profiles?.username?.[0]}
                                             </div>
                                         )}
-                                        <span style={{ fontWeight: 'bold' }}>{selectedGroup.profiles?.nickname}</span>
+                                        <span style={{ fontWeight: 'bold' }}>{selectedGroup.profiles?.username}</span>
                                         <Crown size={14} style={{ color: '#eab308' }} />
                                         <span style={{ fontSize: '0.75rem', color: '#eab308' }}>방장</span>
                                     </div>
@@ -649,13 +649,13 @@ const StudyGroup = () => {
                                     <div key={member.id} style={memberRowStyle}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                             {member.profiles?.avatar_url ? (
-                                                <img src={member.profiles.avatar_url} alt={member.profiles.nickname} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                                <img src={member.profiles.avatar_url} alt={member.profiles.username} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                                             ) : (
                                                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                                    {member.profiles?.nickname?.[0]}
+                                                    {member.profiles?.username?.[0]}
                                                 </div>
                                             )}
-                                            <span>{member.profiles?.nickname}</span>
+                                            <span>{member.profiles?.username}</span>
                                         </div>
                                         {user && selectedGroup.owner_id === user.id && (
                                             <button
@@ -684,13 +684,13 @@ const StudyGroup = () => {
                                         <div key={req.id} style={{ ...memberRowStyle, background: 'rgba(251, 146, 60, 0.05)' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                 {req.profiles?.avatar_url ? (
-                                                    <img src={req.profiles.avatar_url} alt={req.profiles.nickname} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                                    <img src={req.profiles.avatar_url} alt={req.profiles.username} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                                                 ) : (
                                                     <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                                        {req.profiles?.nickname?.[0]}
+                                                        {req.profiles?.username?.[0]}
                                                     </div>
                                                 )}
-                                                <span>{req.profiles?.nickname}</span>
+                                                <span>{req.profiles?.username}</span>
                                             </div>
                                             <div style={{ display: 'flex', gap: '6px' }}>
                                                 <button
