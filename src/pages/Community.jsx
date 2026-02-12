@@ -52,7 +52,7 @@ const Community = () => {
             .from('posts')
             .select(`
                 *,
-                profiles (username, message_count, avatar_url)
+                profiles!posts_user_id_fkey (username, message_count, avatar_url)
             `)
             .order('created_at', { ascending: true });
 

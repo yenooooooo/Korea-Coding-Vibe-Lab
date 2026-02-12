@@ -48,7 +48,7 @@ const Admin = () => {
             .from('visits')
             .select(`
                 *,
-                profiles (username, email)
+                profiles!visits_user_id_fkey (username, email)
             `) // Left join if you linked profiles, but visits.user_id might not be linked in schema yet?
             // Actually we defined user_id references auth.users. 
             // Joining auth.users is not directly possible via client. 

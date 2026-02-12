@@ -38,7 +38,7 @@ const StudyGroup = () => {
         const today = new Date().toISOString().split('T')[0];
         const { data, error } = await supabase
             .from('attendance')
-            .select('user_id, vibe_status, check_in_date, profiles(username, vibe_color, avatar_url)')
+            .select('user_id, vibe_status, check_in_date, profiles!attendance_user_id_fkey(username, vibe_color, avatar_url)')
             .eq('check_in_date', today)
             .limit(10);
 
@@ -50,7 +50,7 @@ const StudyGroup = () => {
     const fetchStudyGroups = async () => {
         const { data, error } = await supabase
             .from('study_groups')
-            .select('*, profiles(username, avatar_url)')
+            .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url)')
             .eq('is_active', true)
             .order('created_at', { ascending: false });
 
@@ -82,7 +82,7 @@ const StudyGroup = () => {
         // 승인된 멤버 조회
         const { data: members } = await supabase
             .from('study_group_members')
-            .select('*, profiles(username, avatar_url)')
+            .select('*, profiles!study_group_members_user_id_fkey(username, avatar_url)')
             .eq('group_id', group.id)
             .eq('status', 'approved')
             .order('joined_at', { ascending: true });
@@ -93,7 +93,7 @@ const StudyGroup = () => {
         if (user && group.owner_id === user.id) {
             const { data: pending } = await supabase
                 .from('study_group_members')
-                .select('*, profiles(username, avatar_url)')
+                .select('*, profiles!study_group_members_user_id_fkey(username, avatar_url)')
                 .eq('group_id', group.id)
                 .eq('status', 'pending')
                 .order('joined_at', { ascending: true });
@@ -171,7 +171,7 @@ const StudyGroup = () => {
             // 최신 그룹 정보 반영
             const { data: updatedGroup } = await supabase
                 .from('study_groups')
-                .select('*, profiles(username, avatar_url)')
+                .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url)')
                 .eq('id', groupId)
                 .single();
             if (updatedGroup) setSelectedGroup(updatedGroup);
@@ -204,7 +204,7 @@ const StudyGroup = () => {
             fetchStudyGroups();
             const { data: updatedGroup } = await supabase
                 .from('study_groups')
-                .select('*, profiles(username, avatar_url)')
+                .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url)')
                 .eq('id', groupId)
                 .single();
             if (updatedGroup) setSelectedGroup(updatedGroup);
@@ -257,7 +257,7 @@ const StudyGroup = () => {
         if (!error) {
             const { data: updatedGroup } = await supabase
                 .from('study_groups')
-                .select('*, profiles(username, avatar_url)')
+                .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url)')
                 .eq('id', selectedGroup.id)
                 .single();
             if (updatedGroup) setSelectedGroup(updatedGroup);
