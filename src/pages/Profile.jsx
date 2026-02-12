@@ -4,15 +4,17 @@ import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
 import {
     User, MapPin, Link as LinkIcon, Github, Globe,
-    Edit2, Save, X, Trophy, Flame, Sparkles, MessageSquare
+    Edit2, Save, X, Trophy, Flame, Sparkles, MessageSquare, Lock
 } from 'lucide-react';
 
 const Profile = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
-    const [badges, setBadges] = useState([]);
+    const [badges, setBadges] = useState([]);       // 획득한 뱃지
+    const [allBadges, setAllBadges] = useState([]);  // 전체 뱃지 목록
     const [attendanceHistory, setAttendanceHistory] = useState([]);
+    const [newBadge, setNewBadge] = useState(null);  // 새 뱃지 획득 알림용
 
     // Edit Mode State
     const [isEditing, setIsEditing] = useState(false);
@@ -68,13 +70,20 @@ const Profile = () => {
 
             if (profileError) throw profileError;
 
-            // 2. Fetch Badges
+            // 2. Fetch Earned Badges
             const { data: badgeData, error: badgeError } = await supabase
                 .from('user_badges')
                 .select('badge_id, awarded_at, badges(*)')
                 .eq('user_id', user.id);
 
             if (badgeError) throw badgeError;
+
+            // 2-1. Fetch All Badges (for unearned display)
+            const { data: allBadgeData, error: allBadgeError } = await supabase
+                .from('badges')
+                .select('*');
+
+            if (allBadgeError) throw allBadgeError;
 
             // 3. Fetch Attendance (For Heatmap)
             const { data: attendanceData, error: attendanceError } = await supabase
@@ -87,7 +96,18 @@ const Profile = () => {
 
             setProfile(profileData);
             setBadges(badgeData || []);
+            setAllBadges(allBadgeData || []);
             setAttendanceHistory(attendanceData || []);
+
+            // 새 뱃지 획득 감지 (localStorage 비교)
+            const earnedIds = (badgeData || []).map(b => b.badge_id);
+            const prevIds = JSON.parse(localStorage.getItem(`badges_${user.id}`) || '[]');
+            const newlyEarned = earnedIds.filter(id => !prevIds.includes(id));
+            if (newlyEarned.length > 0 && prevIds.length > 0) {
+                const newBadgeInfo = (allBadgeData || []).find(b => b.id === newlyEarned[0]);
+                if (newBadgeInfo) setNewBadge(newBadgeInfo);
+            }
+            localStorage.setItem(`badges_${user.id}`, JSON.stringify(earnedIds));
 
             // Init Edit Form
             setEditForm({
@@ -303,35 +323,45 @@ const Profile = () => {
 
                 {/* Stats Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
-                    <StatCard icon={<Flame color="#f97316" />} label="연속 출석" value={`${profile?.current_streak || 0}일`} desc="최대 기록: 100일" />
-                    <StatCard icon={<Sparkles color="#facc15" />} label="바이브 포인트" value={`${profile?.total_points || 0} P`} desc="상위 10%" />
+                    <StatCard icon={<Flame color="#f97316" />} label="연속 출석" value={`${profile?.current_streak || 0}일`} desc={`최대 기록: ${profile?.max_streak || 0}일`} />
+                    <StatCard icon={<Sparkles color="#facc15" />} label="바이브 포인트" value={`${profile?.total_points || 0} P`} desc="활동으로 적립" />
                     <StatCard icon={<MessageSquare color="#2dd4bf" />} label="커뮤니티 활동" value={`${profile?.message_count || 0}회`} desc="게시글 + 댓글" />
-                    <StatCard icon={<Trophy color="#a855f7" />} label="획득 뱃지" value={`${badges.length}개`} desc="수집률 20%" />
+                    <StatCard icon={<Trophy color="#a855f7" />} label="획득 뱃지" value={`${badges.length}개`} desc={`${badges.length}/${allBadges.length}개 수집`} />
                 </div>
 
                 {/* Badges Section */}
                 <div style={{ background: 'rgba(30, 41, 59, 0.5)', borderRadius: '24px', padding: '30px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '30px' }}>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '20px', color: '#fff' }}>🏆 획득한 뱃지</h3>
-                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                        {badges.length > 0 ? badges.map(({ badges: badge }, i) => (
-                            <div key={i} title={badge.description} style={{ textAlign: 'center' }}>
-                                <div style={{
-                                    width: '60px', height: '60px',
-                                    background: 'rgba(255,255,255,0.05)',
-                                    borderRadius: '16px',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: '2rem',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    marginBottom: '8px',
-                                    cursor: 'help'
-                                }}>
-                                    {badge.icon}
-                                </div>
-                                <div style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>{badge.name}</div>
-                            </div>
-                        )) : (
-                            <p style={{ color: '#64748b' }}>아직 획득한 뱃지가 없습니다. 활동을 시작해보세요!</p>
-                        )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#fff' }}>
+                            🏆 뱃지 컬렉션
+                        </h3>
+                        <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+                            {badges.length}/{allBadges.length}개 획득
+                        </span>
+                    </div>
+                    {/* 수집률 프로그레스 바 */}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '8px', height: '6px', marginBottom: '24px', overflow: 'hidden' }}>
+                        <div style={{
+                            width: allBadges.length > 0 ? `${(badges.length / allBadges.length) * 100}%` : '0%',
+                            height: '100%',
+                            background: 'linear-gradient(to right, #6366f1, #a855f7)',
+                            borderRadius: '8px',
+                            transition: 'width 0.5s ease'
+                        }} />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
+                        {allBadges.map((badge) => {
+                            const earned = badges.find(b => b.badge_id === badge.id);
+                            const progress = getBadgeProgress(badge, profile);
+                            return (
+                                <BadgeCard
+                                    key={badge.id}
+                                    badge={badge}
+                                    earned={earned}
+                                    progress={progress}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -398,6 +428,52 @@ const Profile = () => {
                         <p style={{ textAlign: 'center', marginTop: '20px', color: '#64748b', fontSize: '0.9rem' }}>
                             Powered by DiceBear 🎲
                         </p>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* Badge Celebration Modal */}
+            {newBadge && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.85)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 120
+                }}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.5, y: 30 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ type: 'spring', bounce: 0.5 }}
+                        style={{
+                            background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+                            padding: '40px',
+                            borderRadius: '24px',
+                            textAlign: 'center',
+                            border: '1px solid rgba(99, 102, 241, 0.3)',
+                            boxShadow: '0 0 60px rgba(99, 102, 241, 0.2)',
+                            maxWidth: '360px'
+                        }}
+                    >
+                        <div style={{ fontSize: '4rem', marginBottom: '16px' }}>{newBadge.icon}</div>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#facc15', marginBottom: '8px' }}>
+                            새 뱃지 획득!
+                        </h2>
+                        <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>
+                            {newBadge.name}
+                        </p>
+                        <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '24px' }}>
+                            {newBadge.description}
+                        </p>
+                        <button
+                            onClick={() => setNewBadge(null)}
+                            style={{
+                                background: '#6366f1', color: '#fff', border: 'none',
+                                padding: '12px 32px', borderRadius: '12px',
+                                fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem'
+                            }}
+                        >
+                            확인
+                        </button>
                     </motion.div>
                 </div>
             )}
@@ -487,6 +563,89 @@ const StatCard = ({ icon, label, value, desc }) => (
         <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{desc}</div>
     </div>
 );
+
+// 뱃지 진행률 계산
+const getBadgeProgress = (badge, profile) => {
+    if (!profile) return 0;
+    let current = 0;
+    if (badge.condition_type === 'STREAK') current = profile.current_streak || 0;
+    else if (badge.condition_type === 'POST_COUNT') current = profile.message_count || 0;
+    else if (badge.condition_type === 'VIBE_POINT') current = profile.total_points || 0;
+    return Math.min(Math.round((current / badge.condition_value) * 100), 100);
+};
+
+// 개별 뱃지 카드
+const BadgeCard = ({ badge, earned, progress }) => {
+    const isEarned = !!earned;
+    return (
+        <div
+            title={badge.description}
+            style={{
+                background: isEarned ? 'rgba(99, 102, 241, 0.1)' : 'rgba(255,255,255,0.02)',
+                borderRadius: '16px',
+                padding: '16px',
+                border: isEarned ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(255,255,255,0.05)',
+                textAlign: 'center',
+                opacity: isEarned ? 1 : 0.6,
+                transition: 'all 0.3s'
+            }}
+        >
+            <div style={{
+                fontSize: '2rem',
+                marginBottom: '8px',
+                filter: isEarned ? 'none' : 'grayscale(1)',
+                position: 'relative',
+                display: 'inline-block'
+            }}>
+                {badge.icon}
+                {!isEarned && (
+                    <Lock size={14} style={{
+                        position: 'absolute', bottom: -2, right: -6,
+                        color: '#64748b'
+                    }} />
+                )}
+            </div>
+            <div style={{
+                fontSize: '0.8rem',
+                fontWeight: 'bold',
+                color: isEarned ? '#e2e8f0' : '#64748b',
+                marginBottom: '4px'
+            }}>
+                {badge.name}
+            </div>
+            {isEarned ? (
+                <div style={{ fontSize: '0.7rem', color: '#6366f1' }}>
+                    {new Date(earned.awarded_at).toLocaleDateString()}
+                </div>
+            ) : (
+                <>
+                    <div style={{
+                        fontSize: '0.7rem', color: '#64748b', marginBottom: '6px'
+                    }}>
+                        {badge.description}
+                    </div>
+                    <div style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        borderRadius: '4px',
+                        height: '4px',
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{
+                            width: `${progress}%`,
+                            height: '100%',
+                            background: progress >= 100 ? '#22c55e' : '#6366f1',
+                            borderRadius: '4px',
+                            transition: 'width 0.5s ease'
+                        }} />
+                    </div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '4px' }}>
+                        {progress}%
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
 
 const InputField = ({ label, value, onChange }) => (
     <div>
