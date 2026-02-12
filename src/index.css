@@ -1,0 +1,13 @@
+:root {
+    --bg-dark: #0f172a;
+    --text-light: #f8fafc;
+}
+
+body {
+    margin: 0;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
