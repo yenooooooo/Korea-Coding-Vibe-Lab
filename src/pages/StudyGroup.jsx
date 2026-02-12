@@ -61,15 +61,20 @@ const StudyGroup = () => {
 
     const fetchMyMemberships = async () => {
         if (!user) return;
-        const { data, error } = await supabase
-            .from('study_group_members')
-            .select('group_id, status')
-            .eq('user_id', user.id);
+        try {
+            const { data, error } = await supabase
+                .from('study_group_members')
+                .select('group_id, status')
+                .eq('user_id', user.id);
 
-        if (!error && data) {
-            const map = {};
-            data.forEach(m => { map[m.group_id] = m.status; });
-            setMyMemberships(map);
+            if (!error && data) {
+                const map = {};
+                data.forEach(m => { map[m.group_id] = m.status; });
+                setMyMemberships(map);
+            }
+        } catch (e) {
+            // study_group_members 테이블이 아직 없는 경우 무시
+            console.warn('study_group_members 테이블 조회 실패:', e);
         }
     };
 

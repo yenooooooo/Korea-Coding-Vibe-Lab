@@ -3,11 +3,17 @@
 -- Supabase SQL 편집기에서 실행하세요
 -- ================================================
 
+-- 0. study_groups.owner_id FK를 profiles(id) 직접 참조로 변경
+--    (기존: auth.users(id) → PostgREST가 profiles 조인을 못 찾아 400 오류 발생)
+ALTER TABLE study_groups DROP CONSTRAINT IF EXISTS study_groups_owner_id_fkey;
+ALTER TABLE study_groups ADD CONSTRAINT study_groups_owner_id_fkey
+  FOREIGN KEY (owner_id) REFERENCES profiles(id) ON DELETE CASCADE;
+
 -- 1. study_group_members 테이블 생성
 create table if not exists study_group_members (
   id uuid default gen_random_uuid() primary key,
   group_id uuid references study_groups(id) on delete cascade not null,
-  user_id uuid references auth.users(id) on delete cascade not null,
+  user_id uuid references profiles(id) on delete cascade not null,
   status text not null default 'pending',  -- 'pending', 'approved', 'rejected'
   joined_at timestamptz default now(),
   unique(group_id, user_id)
