@@ -1,6 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, Users, Clock, X, Send, MessageCircle, CheckCircle } from 'lucide-react';
+import { Search, Star, Users, Clock, X, Send, MessageCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * MentorFinding 페이지
@@ -10,6 +12,7 @@ import { Search, Star, Users, Clock, X, Send, MessageCircle, CheckCircle } from 
  * - 1:1 매칭 요청
  */
 const MentorFinding = () => {
+    const { user } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [expertiseFilter, setExpertiseFilter] = useState('all');
     const [levelFilter, setLevelFilter] = useState('all');
@@ -21,9 +24,63 @@ const MentorFinding = () => {
         goals: '',
         preferredTime: ''
     });
+    const [mentorsData, setMentorsData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // 샘플 멘토 데이터
-    const mentors = [
+    // Supabase에서 멘토 데이터 조회
+    useEffect(() => {
+        const fetchMentors = async () => {
+            try {
+                setLoading(true);
+                const { data, error: fetchError } = await supabase
+                    .from('mentors')
+                    .select('*')
+                    .order('rating', { ascending: false });
+
+                if (fetchError) {
+                    console.warn('멘토 데이터 조회 실패, 샘플 데이터 사용:', fetchError.message);
+                    setMentorsData(null);
+                } else {
+                    setMentorsData(data || null);
+                }
+            } catch (err) {
+                console.warn('멘토 데이터 조회 오류:', err.message);
+                setMentorsData(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMentors();
+    }, []);
+
+    // 매칭 요청 제출
+    const handleSubmitMatching = async () => {
+        if (matchingForm.introduction.trim() && matchingForm.goals.trim()) {
+            try {
+                if (user && selectedMentor) {
+                    await supabase.from('mentor_requests').insert({
+                        user_id: user.id,
+                        mentor_id: selectedMentor.id,
+                        introduction: matchingForm.introduction,
+                        goals: matchingForm.goals,
+                        preferred_time: matchingForm.preferredTime
+                    });
+                }
+                alert(`${selectedMentor.name} 멘토에게 매칭 요청이 발송되었습니다!\n곧 연락을 받으실 거예요.`);
+                setMatchingForm({ introduction: '', goals: '', preferredTime: '' });
+                setMatchingMode(false);
+                setSelectedMentor(null);
+            } catch (err) {
+                console.error('매칭 요청 실패:', err);
+                alert('요청 발송에 실패했습니다. 다시 시도해주세요.');
+            }
+        }
+    };
+
+    // 샘플 멘토 데이터 (Supabase에서 못 가져온 경우 사용)
+    const sampleMentors = [
         {
             id: 1,
             name: '김개발',
@@ -134,6 +191,9 @@ const MentorFinding = () => {
         }
     ];
 
+    // 실제 데이터 또는 샘플 데이터 사용
+    const mentors = mentorsData || sampleMentors;
+
     const expertiseOptions = [
         { id: 'all', name: '전체' },
         { id: 'react', name: 'React' },
@@ -177,14 +237,6 @@ const MentorFinding = () => {
         return result;
     }, [searchQuery, expertiseFilter, levelFilter, sortBy]);
 
-    const handleSubmitMatching = () => {
-        if (matchingForm.introduction.trim() && matchingForm.goals.trim()) {
-            alert(`${selectedMentor.name} 멘토에게 매칭 요청이 발송되었습니다!\n곧 연락을 받으실 거예요.`);
-            setMatchingForm({ introduction: '', goals: '', preferredTime: '' });
-            setMatchingMode(false);
-            setSelectedMentor(null);
-        }
-    };
 
     return (
         <div style={{
@@ -369,7 +421,47 @@ const MentorFinding = () => {
                 </div>
             </motion.div>
 
+            {/* 로딩 상태 */}
+            {loading && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4 }}
+                    style={{
+                        textAlign: 'center',
+                        padding: '40px 20px',
+                        marginBottom: '60px'
+                    }}
+                >
+                    <p style={{ color: '#94a3b8', fontSize: '1rem' }}>멘토 목록을 불러오는 중...</p>
+                </motion.div>
+            )}
+
+            {/* 데이터 출처 표시 */}
+            {!loading && mentorsData && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4 }}
+                    style={{
+                        background: 'rgba(34, 197, 94, 0.1)',
+                        border: '1px solid rgba(34, 197, 94, 0.2)',
+                        borderRadius: '8px',
+                        padding: '12px 16px',
+                        marginBottom: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '0.85rem',
+                        color: '#22c55e'
+                    }}
+                >
+                    ✓ 데이터베이스에서 실시간 멘토 정보를 가져오고 있습니다
+                </motion.div>
+            )}
+
             {/* 멘토 카드 그리드 */}
+            {!loading && (
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -559,8 +651,9 @@ const MentorFinding = () => {
                     </motion.div>
                 ))}
             </motion.div>
+            )}
 
-            {filteredAndSorted.length === 0 && (
+            {filteredAndSorted.length === 0 && !loading && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
