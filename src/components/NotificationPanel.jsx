@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ThumbsUp, UserPlus, CheckCircle, XCircle, CheckCheck, X } from 'lucide-react';
+import { ThumbsUp, UserPlus, CheckCircle, XCircle, CheckCheck, X, MessageSquare, Trophy, Zap, Gift, Star, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -10,6 +10,12 @@ const NOTIFICATION_ICONS = {
     JOIN_REQUEST: { icon: UserPlus, color: '#a855f7', bg: 'rgba(168, 85, 247, 0.1)' },
     JOIN_APPROVED: { icon: CheckCircle, color: '#22c55e', bg: 'rgba(34, 197, 94, 0.1)' },
     JOIN_REJECTED: { icon: XCircle, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' },
+    NEW_MESSAGE: { icon: MessageSquare, color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
+    RANK_UP: { icon: Trophy, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+    ACHIEVEMENT: { icon: Star, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+    POINTS_EARNED: { icon: Zap, color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+    BADGE_EARNED: { icon: Gift, color: '#ec4899', bg: 'rgba(236, 72, 153, 0.1)' },
+    FRIEND_REQUEST: { icon: Users, color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.1)' },
 };
 
 const timeAgo = (dateStr) => {
@@ -151,7 +157,7 @@ const NotificationPanel = ({ isOpen, onClose, style }) => {
                     transition={{ duration: 0.2 }}
                     style={{
                         position: 'fixed',
-                        left: '270px',
+                        left: '100px',
                         top: '20px',
                         width: '360px',
                         maxHeight: '520px',
@@ -164,6 +170,7 @@ const NotificationPanel = ({ isOpen, onClose, style }) => {
                         display: 'flex',
                         flexDirection: 'column',
                         overflow: 'hidden',
+                        transition: 'all 0.3s ease',
                         ...style, // Allow overriding styles
                     }}
                 >

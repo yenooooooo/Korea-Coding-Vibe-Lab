@@ -6,13 +6,16 @@ import Sidebar from '../components/Sidebar';
 import GlobalBanner from '../components/GlobalBanner';
 import AdminEntryToast from '../components/AdminEntryToast';
 import ScrollToTop from '../components/ScrollToTop';
+import NotificationPanel from '../components/NotificationPanel';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 const MainLayout = () => {
     const { user } = useAuth();
     const location = useLocation();
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [isNavOpen, setIsNavOpen] = useState(false);
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
     const [activeVibe, setActiveVibe] = useState('default');
     const [announcement, setAnnouncement] = useState(null);
     const [isGlitching, setIsGlitching] = useState(false);
@@ -75,6 +78,61 @@ const MainLayout = () => {
             user_id: user.id
         }).catch(err => console.log('View already recorded or error:', err));
     };
+
+    // 읽지 않은 알림 개수 구독
+    useEffect(() => {
+        if (!user) return;
+
+        const fetchUnreadCount = async () => {
+            const { count } = await supabase
+                .from('notifications')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', user.id)
+                .eq('is_read', false);
+            setUnreadNotificationCount(count || 0);
+        };
+
+        fetchUnreadCount();
+
+        // Realtime subscription for unread count
+        const channel = supabase
+            .channel('unread_notifications_' + user.id)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'notifications',
+                    filter: `user_id=eq.${user.id}`,
+                },
+                () => {
+                    setUnreadNotificationCount(prev => prev + 1);
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'notifications',
+                    filter: `user_id=eq.${user.id}`,
+                },
+                (payload) => {
+                    if (!payload.new.is_read && payload.old.is_read) {
+                        // 읽음으로 변경
+                        setUnreadNotificationCount(prev => Math.max(0, prev - 1));
+                    } else if (payload.new.is_read && !payload.old.is_read) {
+                        // 읽지 않음으로 변경
+                        setUnreadNotificationCount(prev => prev + 1);
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user]);
 
     useEffect(() => {
         // Secure Broadcast Listener (Listen to Table Changes)
@@ -212,9 +270,14 @@ const MainLayout = () => {
                         mixBlendMode: 'overlay'
                     }} />
                 )}
-                <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(prev => !prev)} />
+                <Sidebar
+                    isNavOpen={isNavOpen}
+                    onToggle={() => setIsNavOpen(!isNavOpen)}
+                    notificationCount={unreadNotificationCount}
+                    onNotificationClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                />
                 <div style={{
-                    marginLeft: sidebarCollapsed ? '68px' : '260px',
+                    marginLeft: '60px',
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
@@ -342,6 +405,16 @@ const MainLayout = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <NotificationPanel
+                isOpen={isNotificationOpen}
+                onClose={() => setIsNotificationOpen(false)}
+                style={{
+                    left: isNavOpen ? '300px' : '100px',
+                    top: '20px',
+                    transition: 'left 0.3s ease'
+                }}
+            />
 
             <ScrollToTop />
             <AdminEntryToast />
