@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, TrendingUp, Flame, Coffee, Bug, Brain, Trophy, Crown, Sparkles, Quote } from 'lucide-react';
+import { Calendar, CheckCircle, TrendingUp, Flame, Coffee, Bug, Brain, Trophy, Crown, Sparkles, Quote, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
+import ProfileSummaryModal from '../components/ProfileSummaryModal';
+import { getVibeLevel, getStreakCombo, getStreakMilestone } from '../utils/vibeLevel';
+import { getTodayKST, formatDateKST } from '../utils/dateUtils';
+import { isAdmin } from '../utils/admin';
+import { VibeName, fetchBatchEquippedDetails } from '../utils/vibeItems.jsx';
+
+import { useToast } from '../context/ToastContext';
 
 const Attendance = () => {
-    const { user } = useAuth();
+    const { user, profile: authProfile } = useAuth();
+    const { addToast } = useToast();
     const [loading, setLoading] = useState(true);
     const [checkedIn, setCheckedIn] = useState(false);
     const [streak, setStreak] = useState(0);
@@ -15,6 +23,8 @@ const Attendance = () => {
     const [leaderboard, setLeaderboard] = useState([]);
     const [showQuote, setShowQuote] = useState(false);
     const [todayQuote, setTodayQuote] = useState('');
+    const [selectedUserId, setSelectedUserId] = useState(null);
+    const [leaderboardDetails, setLeaderboardDetails] = useState({});
 
     const vibes = [
         { id: 'BURNING', icon: <Flame color="#f97316" />, label: 'Burning 🔥', color: '#f97316', desc: '오늘 하루 불태운다!' },
@@ -40,31 +50,31 @@ const Attendance = () => {
         }
     }, [user]);
 
+    // AuthContext Realtime 동기화: 관리자 포인트 지급 등 외부 변경 즉시 반영
+    useEffect(() => {
+        if (authProfile) {
+            setStreak(authProfile.current_streak || 0);
+            setTotalPoints(authProfile.total_points || 0);
+        }
+    }, [authProfile?.total_points, authProfile?.current_streak]);
+
     const fetchUserData = async () => {
         try {
-            // Check if checked in today
-            const today = new Date().toISOString().split('T')[0];
-            const { data: attendance } = await supabase
-                .from('attendance')
-                .select('*')
-                .eq('user_id', user.id)
-                .eq('check_in_date', today)
-                .maybeSingle();
+            const today = getTodayKST();
 
-            if (attendance) {
+            // Parallel Fetching
+            const [attendanceRes, profileRes] = await Promise.all([
+                supabase.from('attendance').select('*').eq('user_id', user.id).eq('check_in_date', today).maybeSingle(),
+                supabase.from('profiles').select('current_streak, total_points').eq('id', user.id).maybeSingle()
+            ]);
+
+            if (attendanceRes.data) {
                 setCheckedIn(true);
             }
 
-            // Get profile stats
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('current_streak, total_points')
-                .eq('id', user.id)
-                .maybeSingle();
-
-            if (profile) {
-                setStreak(profile.current_streak || 0);
-                setTotalPoints(profile.total_points || 0);
+            if (profileRes.data) {
+                setStreak(profileRes.data.current_streak || 0);
+                setTotalPoints(profileRes.data.total_points || 0);
             }
         } catch (error) {
             console.error('Error fetching user data:', error);
@@ -84,13 +94,19 @@ const Attendance = () => {
     };
 
     const fetchLeaderboard = async () => {
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('profiles')
-            .select('username, current_streak, total_points')
+            .select('id, username, avatar_url, current_streak, total_points, equipped_items')
             .order('current_streak', { ascending: false })
             .limit(5);
 
-        setLeaderboard(data || []);
+        if (data) {
+            setLeaderboard(data);
+
+            // Resolve equipped details for all leaderboard users
+            const details = await fetchBatchEquippedDetails(supabase, data);
+            setLeaderboardDetails(details);
+        }
     };
 
     const handleCheckIn = async () => {
@@ -98,48 +114,63 @@ const Attendance = () => {
         setLoading(true);
 
         try {
-            // 1. Insert Attendance Record
+            // 1. Insert Attendance Record with KST Date
+            const today = getTodayKST();
             const { error: insertError } = await supabase
                 .from('attendance')
                 .insert([
-                    { user_id: user.id, vibe_status: selectedVibe, points: 10 }
+                    { user_id: user.id, vibe_status: selectedVibe, points: 10, check_in_date: today }
                 ]);
 
             if (insertError) throw insertError;
 
-            // 2. Refetch to update UI
+            // 2. 관리자 출석 시 전체 알림 broadcast
+            if (isAdmin(user.email)) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('username')
+                    .eq('id', user.id)
+                    .maybeSingle();
+
+                await supabase.channel('admin_entry_broadcast').send({
+                    type: 'broadcast',
+                    event: 'admin_checkin',
+                    payload: { userId: user.id, username: profile?.username || '운영자' },
+                });
+            }
+
+            // 3. Refetch to update UI
             await fetchUserData();
             await fetchAttendanceHistory();
             await fetchLeaderboard();
 
-            // 3. Show Quote
+            // 4. Show Quote
             setTodayQuote(quotes[Math.floor(Math.random() * quotes.length)]);
             setShowQuote(true);
+            addToast('🔥 출석 체크 완료! 10 XP 획득', 'success');
 
         } catch (error) {
             console.error('Error checking in:', error);
-            alert('출석 체크 중 오류가 발생했습니다 😭');
+            addToast('출석 체크 중 오류가 발생했습니다 😭', 'error');
         } finally {
             setLoading(false);
         }
     };
 
     // Prepare Heatmap Data (Simple Grid)
-    const getHeatmapData = () => {
+    const heatmapData = React.useMemo(() => {
         const yearDays = [];
         const today = new Date();
         const startDate = new Date();
         startDate.setFullYear(today.getFullYear() - 1);
 
         for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
-            const dateStr = d.toISOString().split('T')[0];
+            const dateStr = formatDateKST(d);
             const record = attendanceHistory.find(r => r.check_in_date === dateStr);
             yearDays.push({ date: dateStr, record });
         }
         return yearDays;
-    };
-
-    const heatmapData = getHeatmapData();
+    }, [attendanceHistory]);
 
     return (
         <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '100px', color: '#fff' }}>
@@ -154,14 +185,35 @@ const Attendance = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
 
                 {/* 1. Check-In Card */}
-                <div style={{ background: 'rgba(30, 41, 59, 0.5)', borderRadius: '24px', padding: '32px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                <div style={{ background: 'rgba(30, 41, 59, 0.5)', borderRadius: '24px', padding: '32px', border: '1px solid rgba(255,255,255,0.1)', position: 'relative', overflow: 'hidden' }}>
+                    {/* Combo Glow Background */}
+                    {(() => {
+                        const combo = getStreakCombo(streak);
+                        return combo.tier !== 'NONE' && (
+                            <div style={{
+                                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                background: `radial-gradient(ellipse at top right, ${combo.glowColor}, transparent 60%)`,
+                                pointerEvents: 'none', zIndex: 0
+                            }} />
+                        );
+                    })()}
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', position: 'relative', zIndex: 1 }}>
                         <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#facc15', fontWeight: 'bold' }}>
                                 <Flame size={20} />
                                 <span>현재 연속 출석</span>
                             </div>
-                            <h2 style={{ fontSize: '3rem', fontWeight: '800', margin: 0 }}>{streak}<span style={{ fontSize: '1.2rem', fontWeight: 'normal' }}> 일</span></h2>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                <h2 style={{ fontSize: '3rem', fontWeight: '800', margin: 0 }}>{streak}<span style={{ fontSize: '1.2rem', fontWeight: 'normal' }}> 일</span></h2>
+                                <motion.span
+                                    animate={{ scale: [1, 1.2, 1] }}
+                                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                                    style={{ fontSize: '1.2rem' }}
+                                >
+                                    {getStreakCombo(streak).flames}
+                                </motion.span>
+                            </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a855f7', fontWeight: 'bold' }}>
@@ -171,6 +223,36 @@ const Attendance = () => {
                             <h2 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>{totalPoints} <span style={{ fontSize: '1rem', fontWeight: 'normal' }}>P</span></h2>
                         </div>
                     </div>
+
+                    {/* Streak Combo Badge */}
+                    {(() => {
+                        const combo = getStreakCombo(streak);
+                        const levelInfo = getVibeLevel(totalPoints);
+                        return combo.tier !== 'NONE' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '10px 14px', borderRadius: '12px', marginBottom: '16px',
+                                    background: `${combo.color}15`, border: `1px solid ${combo.color}30`,
+                                    position: 'relative', zIndex: 1
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '0.9rem' }}>{combo.flames}</span>
+                                    <div>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: combo.color }}>{combo.label}</div>
+                                        <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>보너스 x{combo.bonusMultiplier}</div>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '8px', background: `${levelInfo.color}15` }}>
+                                    <span style={{ fontSize: '0.85rem' }}>{levelInfo.icon}</span>
+                                    <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: levelInfo.color }}>Lv.{levelInfo.level}</span>
+                                </div>
+                            </motion.div>
+                        );
+                    })()}
 
                     {!checkedIn ? (
                         <>
@@ -232,7 +314,23 @@ const Attendance = () => {
                         }}>
                             <CheckCircle size={48} color="#22c55e" style={{ margin: '0 auto 16px' }} />
                             <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '8px' }}>오늘 출석 완료!</h3>
-                            <p style={{ color: '#bbf7d0' }}>내일도 코딩 리듬 잃지 마세요!</p>
+                            <p style={{ color: '#bbf7d0', marginBottom: '8px' }}>내일도 코딩 리듬 잃지 마세요!</p>
+                            {(() => {
+                                const milestone = getStreakMilestone(streak);
+                                return milestone && (
+                                    <motion.div
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        style={{
+                                            marginTop: '12px', padding: '10px 16px', borderRadius: '12px',
+                                            background: 'rgba(250, 204, 21, 0.1)', border: '1px solid rgba(250, 204, 21, 0.3)',
+                                            fontSize: '0.9rem', color: '#facc15', fontWeight: 'bold'
+                                        }}
+                                    >
+                                        {milestone}
+                                    </motion.div>
+                                );
+                            })()}
                         </div>
                     )}
                 </div>
@@ -246,15 +344,22 @@ const Attendance = () => {
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {leaderboard.map((user, index) => (
-                            <div key={index} style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                background: index === 0 ? 'rgba(250, 204, 21, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                                padding: '12px 16px',
-                                borderRadius: '12px',
-                                border: index === 0 ? '1px solid rgba(250, 204, 21, 0.3)' : 'none'
-                            }}>
+                            <div key={user.id}
+                                onClick={() => setSelectedUserId(user.id)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    background: index === 0 ? 'rgba(250, 204, 21, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+                                    padding: '12px 16px',
+                                    borderRadius: '12px',
+                                    border: index === 0 ? '1px solid rgba(250, 204, 21, 0.3)' : 'none',
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <div style={{
                                         width: '24px',
@@ -267,7 +372,23 @@ const Attendance = () => {
                                     }}>
                                         {index + 1}
                                     </div>
-                                    <span style={{ fontWeight: 'bold' }}>{user.username || 'Anonymous'}</span>
+                                    {leaderboardDetails[user.id]?.avatar ? (
+                                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', overflow: 'hidden' }}>
+                                            <img src={leaderboardDetails[user.id].avatar.icon_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </div>
+                                    ) : user.avatar_url ? (
+                                        <img src={user.avatar_url} alt="Profile" style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem' }}>
+                                            <User size={12} />
+                                        </div>
+                                    )}
+                                    <span style={{ fontWeight: 'bold' }}>
+                                        <VibeName
+                                            name={user.username || 'Anonymous'}
+                                            effectItem={leaderboardDetails[user.id]?.name_effect}
+                                        />
+                                    </span>
                                     {index === 0 && <Crown size={16} color="#facc15" />}
                                 </div>
                                 <div style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>
@@ -280,47 +401,103 @@ const Attendance = () => {
                 </div>
             </div>
 
-            {/* 3. Heatmap */}
-            <div style={{ marginTop: '30px', background: 'rgba(30, 41, 59, 0.5)', borderRadius: '24px', padding: '32px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '20px', color: '#cbd5e1' }}>나의 바이브 히스토리 (최근 1년)</h3>
+            {/* 3. Heatmap - 3D Glassmorphism Vibe Log */}
+            <div style={{ marginTop: '30px', background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.4))', borderRadius: '24px', padding: '32px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', position: 'relative', overflow: 'hidden' }}>
+                {/* Ambient Glow Background */}
+                <div style={{ position: 'absolute', top: '-40%', right: '-10%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
+
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '24px', color: '#f1f5f9', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '1.6rem' }}>📅</span>
+                    나의 바이브 히스토리 (최근 1년)
+                </h3>
 
                 <div style={{
                     display: 'flex',
                     flexWrap: 'wrap',
-                    gap: '4px',
-                    justifyContent: 'flex-start'
+                    gap: '5px',
+                    justifyContent: 'flex-start',
+                    position: 'relative',
+                    zIndex: 1
                 }}>
                     {heatmapData.map((day, i) => {
                         let bg = 'rgba(255,255,255,0.05)';
+                        let glow = 'none';
+                        let vibeLabel = '기록 없음';
+
                         if (day.record) {
                             switch (day.record.vibe_status) {
-                                case 'BURNING': bg = '#f97316'; break;
-                                case 'CHILL': bg = '#2dd4bf'; break;
-                                case 'DEBUGGING': bg = '#ef4444'; break;
-                                case 'LEARNING': bg = '#a855f7'; break;
-                                default: bg = '#6366f1';
+                                case 'BURNING':
+                                    bg = 'linear-gradient(135deg, #f97316, #fb923c)';
+                                    glow = '0 0 12px rgba(249, 115, 22, 0.6)';
+                                    vibeLabel = '🔥 Burning';
+                                    break;
+                                case 'CHILL':
+                                    bg = 'linear-gradient(135deg, #2dd4bf, #5eead4)';
+                                    glow = '0 0 12px rgba(45, 212, 191, 0.6)';
+                                    vibeLabel = '☕ Chill';
+                                    break;
+                                case 'DEBUGGING':
+                                    bg = 'linear-gradient(135deg, #ef4444, #f87171)';
+                                    glow = '0 0 12px rgba(239, 68, 68, 0.6)';
+                                    vibeLabel = '🐛 Debugging';
+                                    break;
+                                case 'LEARNING':
+                                    bg = 'linear-gradient(135deg, #a855f7, #c084fc)';
+                                    glow = '0 0 12px rgba(168, 85, 247, 0.6)';
+                                    vibeLabel = '📚 Learning';
+                                    break;
+                                default:
+                                    bg = 'linear-gradient(135deg, #6366f1, #818cf8)';
+                                    glow = '0 0 12px rgba(99, 102, 241, 0.6)';
+                                    vibeLabel = '✨ Vibe';
                             }
                         }
+
                         return (
-                            <div
-                                key={i}
-                                title={`${day.date}: ${day.record ? day.record.vibe_status : 'No Check-in'}`}
+                            <motion.div
+                                key={day.date}
+                                whileHover={{
+                                    scale: day.record ? 1.4 : 1.1,
+                                    zIndex: 10,
+                                    transition: { duration: 0.2 }
+                                }}
+                                title={`${day.date}\n${vibeLabel}\n${day.record ? '+10 Points' : ''}`}
                                 style={{
-                                    width: '12px',
-                                    height: '12px',
-                                    borderRadius: '2px',
+                                    width: '14px',
+                                    height: '14px',
+                                    borderRadius: '4px',
                                     background: bg,
-                                    opacity: day.record ? 1 : 0.3
+                                    opacity: day.record ? 1 : 0.3,
+                                    boxShadow: day.record ? glow : 'none',
+                                    border: day.record ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.05)',
+                                    cursor: 'pointer',
+                                    position: 'relative',
+                                    backdropFilter: 'blur(4px)',
+                                    transition: 'all 0.2s ease'
                                 }}
                             />
                         );
                     })}
                 </div>
-                <div style={{ display: 'flex', gap: '16px', marginTop: '16px', fontSize: '0.8rem', color: '#94a3b8' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '10px', height: '10px', background: '#f97316', borderRadius: '2px' }} /> Burning</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '10px', height: '10px', background: '#2dd4bf', borderRadius: '2px' }} /> Chill</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '10px', height: '10px', background: '#ef4444', borderRadius: '2px' }} /> Debugging</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: '10px', height: '10px', background: '#a855f7', borderRadius: '2px' }} /> Learning</div>
+
+                {/* Legend */}
+                <div style={{ display: 'flex', gap: '20px', marginTop: '24px', fontSize: '0.85rem', color: '#cbd5e1', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '14px', height: '14px', background: 'linear-gradient(135deg, #f97316, #fb923c)', borderRadius: '4px', boxShadow: '0 0 8px rgba(249, 115, 22, 0.4)', border: '1px solid rgba(255, 255, 255, 0.2)' }} />
+                        <span>🔥 Burning</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '14px', height: '14px', background: 'linear-gradient(135deg, #2dd4bf, #5eead4)', borderRadius: '4px', boxShadow: '0 0 8px rgba(45, 212, 191, 0.4)', border: '1px solid rgba(255, 255, 255, 0.2)' }} />
+                        <span>☕ Chill</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '14px', height: '14px', background: 'linear-gradient(135deg, #ef4444, #f87171)', borderRadius: '4px', boxShadow: '0 0 8px rgba(239, 68, 68, 0.4)', border: '1px solid rgba(255, 255, 255, 0.2)' }} />
+                        <span>🐛 Debugging</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '14px', height: '14px', background: 'linear-gradient(135deg, #a855f7, #c084fc)', borderRadius: '4px', boxShadow: '0 0 8px rgba(168, 85, 247, 0.4)', border: '1px solid rgba(255, 255, 255, 0.2)' }} />
+                        <span>📚 Learning</span>
+                    </div>
                 </div>
             </div>
 
@@ -368,6 +545,13 @@ const Attendance = () => {
                     </motion.div>
                 </div>
             )}
+
+            {/* Profile Summary Modal */}
+            <ProfileSummaryModal
+                userId={selectedUserId}
+                isOpen={!!selectedUserId}
+                onClose={() => setSelectedUserId(null)}
+            />
         </div>
     );
 };

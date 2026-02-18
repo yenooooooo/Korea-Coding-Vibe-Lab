@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: 스터디 그룹 상세 기능 구현 \\(승인제 참여 + 방장 관리\\)\n\n- study_group_members 테이블 SQL 스키마 추가 \\(supabase_study_members.sql\\)\n- 모달 오버레이 상세 화면: 그룹 정보, 멤버 목록, 태그 표시\n- 승인제 참여: 신청 -> 방장 승인/거절 플로우\n- 방장 관리: 멤버 강퇴, 그룹 정보 수정, 모집 마감 기능\n- 카드에 참여 상태 배지 표시 \\(내 그룹/참여중/신청중\\)\n- 오픈채팅 링크는 승인된 멤버와 방장에게만 노출\n- current_members 자동 업데이트 트리거 포함\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ls:*)",
+      "Bash(grep:*)",
+      "Bash(git checkout:*)"
+    ]
+  }
+}

@@ -2,7 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Plus, MessageCircle, ExternalLink, X, Crown, UserPlus, UserMinus, Check, XCircle, Edit2, Save, Lock } from 'lucide-react';
+import { Users, Plus, MessageCircle, ExternalLink, X, Crown, UserPlus, UserMinus, Check, XCircle, Edit2, Save, Lock, Video } from 'lucide-react';
+import ProfileSummaryModal from '../components/ProfileSummaryModal';
+import { useFocusCam } from '../context/FocusCamContext';
+import FocusCamGrid from '../components/FocusCamGrid';
+import { isAdmin, ADMIN_NAME_STYLE, ADMIN_BADGE_STYLE, ADMIN_AVATAR_GLOW } from '../utils/admin';
 
 const StudyGroup = () => {
     const { user } = useAuth();
@@ -24,6 +28,8 @@ const StudyGroup = () => {
     const [myMemberships, setMyMemberships] = useState({});
     const [isEditingGroup, setIsEditingGroup] = useState(false);
     const [editForm, setEditForm] = useState({ title: '', description: '', tech_tags: '', open_chat_url: '', max_members: 4 });
+    const [selectedUserId, setSelectedUserId] = useState(null);
+    const { joinRoom, isJoined, currentGroupId } = useFocusCam();
 
     useEffect(() => {
         fetchActiveUsers();
@@ -50,7 +56,7 @@ const StudyGroup = () => {
     const fetchStudyGroups = async () => {
         const { data, error } = await supabase
             .from('study_groups')
-            .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url)')
+            .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url, is_admin)')
             .eq('is_active', true)
             .order('created_at', { ascending: false });
 
@@ -171,7 +177,7 @@ const StudyGroup = () => {
             // 최신 그룹 정보 반영
             const { data: updatedGroup } = await supabase
                 .from('study_groups')
-                .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url)')
+                .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url, is_admin)')
                 .eq('id', groupId)
                 .single();
             if (updatedGroup) setSelectedGroup(updatedGroup);
@@ -204,7 +210,7 @@ const StudyGroup = () => {
             fetchStudyGroups();
             const { data: updatedGroup } = await supabase
                 .from('study_groups')
-                .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url)')
+                .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url, is_admin)')
                 .eq('id', groupId)
                 .single();
             if (updatedGroup) setSelectedGroup(updatedGroup);
@@ -257,7 +263,7 @@ const StudyGroup = () => {
         if (!error) {
             const { data: updatedGroup } = await supabase
                 .from('study_groups')
-                .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url)')
+                .select('*, profiles!study_groups_owner_id_fkey(username, avatar_url, is_admin)')
                 .eq('id', selectedGroup.id)
                 .single();
             if (updatedGroup) setSelectedGroup(updatedGroup);
@@ -359,7 +365,12 @@ const StudyGroup = () => {
 
                 <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
                     {activeUsers.map((u, i) => (
-                        <div key={i} title={u.vibe_status} style={{ textAlign: 'center', minWidth: '80px' }}>
+                        <div
+                            key={u.user_id}
+                            title={u.vibe_status}
+                            onClick={() => setSelectedUserId(u.user_id)}
+                            style={{ textAlign: 'center', minWidth: '80px', cursor: 'pointer' }}
+                        >
                             <div style={{
                                 width: '60px', height: '60px',
                                 background: '#1e293b',
@@ -445,13 +456,17 @@ const StudyGroup = () => {
                                 </span>
                                 {getStatusBadge(group.id, group.owner_id)}
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div
+                                onClick={(e) => { e.stopPropagation(); setSelectedUserId(group.owner_id); }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                            >
                                 {group.profiles?.avatar_url && (
                                     <img src={group.profiles.avatar_url} alt="Owner" style={{ width: '20px', height: '20px', borderRadius: '50%' }} />
                                 )}
-                                <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
+                                <span style={{ fontSize: '0.8rem', ...(isAdmin(group.profiles) ? ADMIN_NAME_STYLE : { color: '#64748b' }) }}>
                                     by {group.profiles?.username}
                                 </span>
+                                {isAdmin(group.profiles) && <span style={{ ...ADMIN_BADGE_STYLE, fontSize: '0.55rem' }}>운영자</span>}
                             </div>
                         </div>
 
@@ -462,7 +477,7 @@ const StudyGroup = () => {
 
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '15px', height: '30px', overflow: 'hidden' }}>
                             {group.tech_tags?.map((tag, i) => (
-                                <span key={i} style={{ fontSize: '0.8rem', color: '#94a3b8' }}>#{tag}</span>
+                                <span key={`${group.id}-${tag}-${i}`} style={{ fontSize: '0.8rem', color: '#94a3b8' }}>#{tag}</span>
                             ))}
                         </div>
 
@@ -518,315 +533,382 @@ const StudyGroup = () => {
                             {/* 닫기 버튼 */}
                             <button
                                 onClick={closeGroupDetail}
-                                style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                                style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', zIndex: 10 }}
                             >
                                 <X size={24} />
                             </button>
 
-                            {/* 그룹 헤더 */}
-                            {!isEditingGroup ? (
-                                <>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                                        {selectedGroup.profiles?.avatar_url && (
-                                            <img src={selectedGroup.profiles.avatar_url} alt="Owner" style={{ width: '36px', height: '36px', borderRadius: '50%' }} />
-                                        )}
-                                        <div>
-                                            <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>by {selectedGroup.profiles?.username}</span>
-                                        </div>
-                                        <span style={{
-                                            background: selectedGroup.current_members >= selectedGroup.max_members ? 'rgba(239, 68, 68, 0.15)' : 'rgba(99, 102, 241, 0.15)',
-                                            color: selectedGroup.current_members >= selectedGroup.max_members ? '#ef4444' : '#818cf8',
-                                            padding: '4px 12px',
-                                            borderRadius: '8px',
-                                            fontSize: '0.8rem',
-                                            fontWeight: 'bold'
-                                        }}>
-                                            {selectedGroup.current_members >= selectedGroup.max_members ? '마감' : '모집중'} {selectedGroup.current_members}/{selectedGroup.max_members}
-                                        </span>
-                                    </div>
-
-                                    <h2 style={{ fontSize: '1.6rem', fontWeight: 'bold', marginBottom: '16px', paddingRight: '40px' }}>
-                                        {selectedGroup.title}
-                                    </h2>
-
-                                    <p style={{ color: '#cbd5e1', lineHeight: '1.6', marginBottom: '16px', whiteSpace: 'pre-wrap' }}>
-                                        {selectedGroup.description || "설명이 없습니다."}
-                                    </p>
-
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
-                                        {selectedGroup.tech_tags?.map((tag, i) => (
-                                            <span key={i} style={{
-                                                background: 'rgba(99, 102, 241, 0.1)',
-                                                color: '#a5b4fc',
-                                                padding: '4px 12px',
-                                                borderRadius: '20px',
-                                                fontSize: '0.8rem'
-                                            }}>
-                                                #{tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </>
+                            {/* Focus Cam 모드일 경우 그리드 표시 */}
+                            {(isJoined && currentGroupId === selectedGroup.id) ? (
+                                <div style={{ height: '600px' }}>
+                                    <FocusCamGrid onClose={() => { }} />
+                                    {/* onClose는 FocusCamGrid 내부 '나가기' 버튼으로 처리됨 */}
+                                </div>
                             ) : (
-                                /* 그룹 수정 폼 */
-                                <div style={{ marginBottom: '24px', paddingRight: '40px' }}>
-                                    <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '16px', color: '#f59e0b' }}>
-                                        <Edit2 size={16} style={{ marginRight: '8px' }} />그룹 정보 수정
-                                    </h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        <input
-                                            placeholder="제목"
-                                            value={editForm.title}
-                                            onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                                            style={inputStyle}
-                                        />
-                                        <textarea
-                                            placeholder="설명"
-                                            value={editForm.description}
-                                            onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                                            style={{ ...inputStyle, height: '80px', resize: 'none' }}
-                                        />
-                                        <input
-                                            placeholder="태그 (쉼표로 구분)"
-                                            value={editForm.tech_tags}
-                                            onChange={(e) => setEditForm({ ...editForm, tech_tags: e.target.value })}
-                                            style={inputStyle}
-                                        />
-                                        <input
-                                            placeholder="오픈채팅 링크"
-                                            value={editForm.open_chat_url}
-                                            onChange={(e) => setEditForm({ ...editForm, open_chat_url: e.target.value })}
-                                            style={inputStyle}
-                                        />
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <label style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>최대 인원:</label>
-                                            <input
-                                                type="number"
-                                                min="2"
-                                                max="50"
-                                                value={editForm.max_members}
-                                                onChange={(e) => setEditForm({ ...editForm, max_members: parseInt(e.target.value) || 4 })}
-                                                style={{ ...inputStyle, width: '80px' }}
-                                            />
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button onClick={() => setIsEditingGroup(false)} style={{ flex: 1, background: '#334155', color: '#cbd5e1', padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>취소</button>
-                                            <button onClick={handleUpdateGroup} style={{ flex: 1, background: '#f59e0b', color: '#000', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                                <Save size={16} /> 저장
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                                <>
 
-                            {/* 구분선 */}
-                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '0 0 20px' }}></div>
-
-                            {/* 멤버 목록 */}
-                            <div style={{ marginBottom: '20px' }}>
-                                <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Users size={18} /> 멤버 ({groupMembers.length + 1}명)
-                                </h3>
-
-                                {/* 방장 */}
-                                <div style={{ ...memberRowStyle, background: 'rgba(234, 179, 8, 0.05)' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        {selectedGroup.profiles?.avatar_url ? (
-                                            <img src={selectedGroup.profiles.avatar_url} alt="Owner" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-                                        ) : (
-                                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                                {selectedGroup.profiles?.username?.[0]}
-                                            </div>
-                                        )}
-                                        <span style={{ fontWeight: 'bold' }}>{selectedGroup.profiles?.username}</span>
-                                        <Crown size={14} style={{ color: '#eab308' }} />
-                                        <span style={{ fontSize: '0.75rem', color: '#eab308' }}>방장</span>
-                                    </div>
-                                </div>
-
-                                {/* 승인된 멤버 */}
-                                {groupMembers.map((member) => (
-                                    <div key={member.id} style={memberRowStyle}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            {member.profiles?.avatar_url ? (
-                                                <img src={member.profiles.avatar_url} alt={member.profiles.username} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-                                            ) : (
-                                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                                    {member.profiles?.username?.[0]}
+                                    {/* 그룹 헤더 */}
+                                    {!isEditingGroup ? (
+                                        <>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                                                <div
+                                                    onClick={() => setSelectedUserId(selectedGroup.owner_id)}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                                                >
+                                                    {selectedGroup.profiles?.avatar_url && (
+                                                        <img
+                                                            src={selectedGroup.profiles.avatar_url}
+                                                            alt="Owner"
+                                                            className={isAdmin(selectedGroup.profiles) ? 'admin-avatar-animated' : ''}
+                                                            style={{
+                                                                width: '36px', height: '36px', borderRadius: '50%',
+                                                                ...(isAdmin(selectedGroup.profiles) ? { border: '2px solid #a855f7' } : {}),
+                                                            }}
+                                                        />
+                                                    )}
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <span style={{ fontSize: '0.85rem', ...(isAdmin(selectedGroup.profiles) ? ADMIN_NAME_STYLE : { color: '#94a3b8' }) }}>
+                                                            by {selectedGroup.profiles?.username}
+                                                        </span>
+                                                        {isAdmin(selectedGroup.profiles) && <span style={{ ...ADMIN_BADGE_STYLE, fontSize: '0.55rem' }}>운영자</span>}
+                                                    </div>
                                                 </div>
-                                            )}
-                                            <span>{member.profiles?.username}</span>
+                                                <span style={{
+                                                    background: selectedGroup.current_members >= selectedGroup.max_members ? 'rgba(239, 68, 68, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+                                                    color: selectedGroup.current_members >= selectedGroup.max_members ? '#ef4444' : '#818cf8',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {selectedGroup.current_members >= selectedGroup.max_members ? '마감' : '모집중'} {selectedGroup.current_members}/{selectedGroup.max_members}
+                                                </span>
+                                            </div>
+
+                                            <h2 style={{ fontSize: '1.6rem', fontWeight: 'bold', marginBottom: '16px', paddingRight: '40px' }}>
+                                                {selectedGroup.title}
+                                            </h2>
+
+                                            <p style={{ color: '#cbd5e1', lineHeight: '1.6', marginBottom: '16px', whiteSpace: 'pre-wrap' }}>
+                                                {selectedGroup.description || "설명이 없습니다."}
+                                            </p>
+
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
+                                                {selectedGroup.tech_tags?.map((tag, i) => (
+                                                    <span key={`${selectedGroup.id}-${tag}-${i}`} style={{
+                                                        background: 'rgba(99, 102, 241, 0.1)',
+                                                        color: '#a5b4fc',
+                                                        padding: '4px 12px',
+                                                        borderRadius: '20px',
+                                                        fontSize: '0.8rem'
+                                                    }}>
+                                                        #{tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        /* 그룹 수정 폼 */
+                                        <div style={{ marginBottom: '24px', paddingRight: '40px' }}>
+                                            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '16px', color: '#f59e0b' }}>
+                                                <Edit2 size={16} style={{ marginRight: '8px' }} />그룹 정보 수정
+                                            </h3>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                <input
+                                                    placeholder="제목"
+                                                    value={editForm.title}
+                                                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                                                    style={inputStyle}
+                                                />
+                                                <textarea
+                                                    placeholder="설명"
+                                                    value={editForm.description}
+                                                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                                    style={{ ...inputStyle, height: '80px', resize: 'none' }}
+                                                />
+                                                <input
+                                                    placeholder="태그 (쉼표로 구분)"
+                                                    value={editForm.tech_tags}
+                                                    onChange={(e) => setEditForm({ ...editForm, tech_tags: e.target.value })}
+                                                    style={inputStyle}
+                                                />
+                                                <input
+                                                    placeholder="오픈채팅 링크"
+                                                    value={editForm.open_chat_url}
+                                                    onChange={(e) => setEditForm({ ...editForm, open_chat_url: e.target.value })}
+                                                    style={inputStyle}
+                                                />
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                    <label style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>최대 인원:</label>
+                                                    <input
+                                                        type="number"
+                                                        min="2"
+                                                        max="50"
+                                                        value={editForm.max_members}
+                                                        onChange={(e) => setEditForm({ ...editForm, max_members: parseInt(e.target.value) || 4 })}
+                                                        style={{ ...inputStyle, width: '80px' }}
+                                                    />
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <button onClick={() => setIsEditingGroup(false)} style={{ flex: 1, background: '#334155', color: '#cbd5e1', padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>취소</button>
+                                                    <button onClick={handleUpdateGroup} style={{ flex: 1, background: '#f59e0b', color: '#000', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                                        <Save size={16} /> 저장
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                        {user && selectedGroup.owner_id === user.id && (
-                                            <button
-                                                onClick={() => handleKick(member.id, selectedGroup.id)}
-                                                style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                    )}
+
+                                    {/* 구분선 */}
+                                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '0 0 20px' }}></div>
+
+                                    {/* 멤버 목록 */}
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <Users size={18} /> 멤버 ({groupMembers.length + 1}명)
+                                        </h3>
+
+                                        {/* 방장 */}
+                                        <div style={{ ...memberRowStyle, background: 'rgba(234, 179, 8, 0.05)' }}>
+                                            <div
+                                                onClick={() => setSelectedUserId(selectedGroup.owner_id)}
+                                                style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
                                             >
-                                                <UserMinus size={12} /> 강퇴
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-
-                                {groupMembers.length === 0 && (
-                                    <p style={{ color: '#64748b', fontSize: '0.85rem', padding: '8px 0' }}>아직 참여 멤버가 없습니다.</p>
-                                )}
-                            </div>
-
-                            {/* 방장 전용: 대기 중인 신청 */}
-                            {user && selectedGroup.owner_id === user.id && pendingRequests.length > 0 && (
-                                <div style={{ marginBottom: '20px' }}>
-                                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '0 0 16px' }}></div>
-                                    <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b' }}>
-                                        <UserPlus size={18} /> 참여 대기 ({pendingRequests.length}명)
-                                    </h3>
-                                    {pendingRequests.map((req) => (
-                                        <div key={req.id} style={{ ...memberRowStyle, background: 'rgba(251, 146, 60, 0.05)' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                {req.profiles?.avatar_url ? (
-                                                    <img src={req.profiles.avatar_url} alt={req.profiles.username} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                                {selectedGroup.profiles?.avatar_url ? (
+                                                    <img src={selectedGroup.profiles.avatar_url} alt="Owner" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                                                 ) : (
                                                     <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                                        {req.profiles?.username?.[0]}
+                                                        {selectedGroup.profiles?.username?.[0]}
                                                     </div>
                                                 )}
-                                                <span>{req.profiles?.username}</span>
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '6px' }}>
-                                                <button
-                                                    onClick={() => handleApprove(req.id, selectedGroup.id)}
-                                                    style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', border: 'none', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                                >
-                                                    <Check size={12} /> 승인
-                                                </button>
-                                                <button
-                                                    onClick={() => handleReject(req.id)}
-                                                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                                >
-                                                    <XCircle size={12} /> 거절
-                                                </button>
+                                                <span style={{ fontWeight: 'bold' }}>{selectedGroup.profiles?.username}</span>
+                                                <Crown size={14} style={{ color: '#eab308' }} />
+                                                <span style={{ fontSize: '0.75rem', color: '#eab308' }}>방장</span>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
 
-                            {/* 구분선 */}
-                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '0 0 20px' }}></div>
+                                        {/* 승인된 멤버 */}
+                                        {groupMembers.map((member) => (
+                                            <div key={member.id} style={memberRowStyle}>
+                                                <div
+                                                    onClick={() => setSelectedUserId(member.user_id)}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                                                >
+                                                    {member.profiles?.avatar_url ? (
+                                                        <img src={member.profiles.avatar_url} alt={member.profiles.username} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                                    ) : (
+                                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                                            {member.profiles?.username?.[0]}
+                                                        </div>
+                                                    )}
+                                                    <span>{member.profiles?.username}</span>
+                                                </div>
+                                                {user && selectedGroup.owner_id === user.id && (
+                                                    <button
+                                                        onClick={() => handleKick(member.id, selectedGroup.id)}
+                                                        style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                    >
+                                                        <UserMinus size={12} /> 강퇴
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
 
-                            {/* 하단 액션 영역 */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                {/* 오픈채팅 링크 (승인된 멤버 또는 방장만) */}
-                                {(user && (selectedGroup.owner_id === user.id || myMemberships[selectedGroup.id] === 'approved')) && selectedGroup.open_chat_url && (
-                                    <a
-                                        href={selectedGroup.open_chat_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                            width: '100%', padding: '12px',
-                                            background: 'rgba(99, 102, 241, 0.1)',
-                                            color: '#818cf8',
-                                            textDecoration: 'none',
-                                            borderRadius: '12px',
-                                            fontWeight: 'bold',
-                                            border: '1px solid rgba(99, 102, 241, 0.2)',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'}
-                                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)'}
-                                    >
-                                        <MessageCircle size={18} /> 오픈채팅 참여 <ExternalLink size={14} />
-                                    </a>
-                                )}
-
-                                {/* 참여 신청 / 상태 버튼 */}
-                                {renderActionButton()}
-
-                                {/* 방장 관리 버튼 */}
-                                {user && selectedGroup.owner_id === user.id && !isEditingGroup && (
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button
-                                            onClick={startEditGroup}
-                                            style={{ flex: 1, background: 'rgba(251, 146, 60, 0.1)', color: '#fb923c', padding: '10px', borderRadius: '10px', border: '1px solid rgba(251, 146, 60, 0.2)', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                                        >
-                                            <Edit2 size={16} /> 수정
-                                        </button>
-                                        <button
-                                            onClick={() => handleCloseGroup(selectedGroup.id)}
-                                            style={{ flex: 1, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '10px', borderRadius: '10px', border: '1px solid rgba(239, 68, 68, 0.2)', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                                        >
-                                            <Lock size={16} /> 모집 마감
-                                        </button>
+                                        {groupMembers.length === 0 && (
+                                            <p style={{ color: '#64748b', fontSize: '0.85rem', padding: '8px 0' }}>아직 참여 멤버가 없습니다.</p>
+                                        )}
                                     </div>
-                                )}
+
+                                    {/* 방장 전용: 대기 중인 신청 */}
+                                    {user && selectedGroup.owner_id === user.id && pendingRequests.length > 0 && (
+                                        <div style={{ marginBottom: '20px' }}>
+                                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '0 0 16px' }}></div>
+                                            <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b' }}>
+                                                <UserPlus size={18} /> 참여 대기 ({pendingRequests.length}명)
+                                            </h3>
+                                            {pendingRequests.map((req) => (
+                                                <div key={req.id} style={{ ...memberRowStyle, background: 'rgba(251, 146, 60, 0.05)' }}>
+                                                    <div
+                                                        onClick={() => setSelectedUserId(req.user_id)}
+                                                        style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                                                    >
+                                                        {req.profiles?.avatar_url ? (
+                                                            <img src={req.profiles.avatar_url} alt={req.profiles.username} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                                        ) : (
+                                                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                                                {req.profiles?.username?.[0]}
+                                                            </div>
+                                                        )}
+                                                        <span>{req.profiles?.username}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                                        <button
+                                                            onClick={() => handleApprove(req.id, selectedGroup.id)}
+                                                            style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', border: 'none', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                        >
+                                                            <Check size={12} /> 승인
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleReject(req.id)}
+                                                            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                        >
+                                                            <XCircle size={12} /> 거절
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* 구분선 */}
+                                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '0 0 20px' }}></div>
+
+                                    {/* 하단 액션 영역 */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        {/* 오픈채팅 링크 (승인된 멤버 또는 방장만) */}
+                                        {(user && (selectedGroup.owner_id === user.id || myMemberships[selectedGroup.id] === 'approved')) && selectedGroup.open_chat_url && (
+                                            <a
+                                                href={selectedGroup.open_chat_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                                    width: '100%', padding: '12px',
+                                                    background: 'rgba(99, 102, 241, 0.1)',
+                                                    color: '#818cf8',
+                                                    textDecoration: 'none',
+                                                    borderRadius: '12px',
+                                                    fontWeight: 'bold',
+                                                    border: '1px solid rgba(99, 102, 241, 0.2)',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'}
+                                                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)'}
+                                            >
+                                                <MessageCircle size={18} /> 오픈채팅 참여 <ExternalLink size={14} />
+                                            </a>
+                                        )}
+
+                                        {/* Focus Cam 버튼 (승인된 멤버 또는 방장만) */}
+                                        {(user && (selectedGroup.owner_id === user.id || myMemberships[selectedGroup.id] === 'approved')) && (
+                                            <button
+                                                onClick={() => joinRoom(selectedGroup.id)}
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                                    width: '100%', padding: '12px',
+                                                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    borderRadius: '12px',
+                                                    fontWeight: 'bold',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                                                    transition: 'transform 0.2s'
+                                                }}
+                                                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+                                                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                            >
+                                                <Video size={18} /> Focus Cam (무언 코딩) 참여
+                                            </button>
+                                        )}
+
+                                        {/* 참여 신청 / 상태 버튼 */}
+                                        {renderActionButton()}
+
+                                        {/* 방장 관리 버튼 */}
+                                        {user && selectedGroup.owner_id === user.id && !isEditingGroup && (
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={startEditGroup}
+                                                    style={{ flex: 1, background: 'rgba(251, 146, 60, 0.1)', color: '#fb923c', padding: '10px', borderRadius: '10px', border: '1px solid rgba(251, 146, 60, 0.2)', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                                                >
+                                                    <Edit2 size={16} /> 수정
+                                                </button>
+                                                <button
+                                                    onClick={() => handleCloseGroup(selectedGroup.id)}
+                                                    style={{ flex: 1, background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '10px', borderRadius: '10px', border: '1px solid rgba(239, 68, 68, 0.2)', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                                                >
+                                                    <Lock size={16} /> 모집 마감
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </motion.div>
+                    </div >
+                )
+                }
+            </AnimatePresence >
+
+            {/* Create Group Modal */}
+            {
+                isCreating && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(0,0,0,0.8)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        zIndex: 100
+                    }}>
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            style={{ background: '#1e293b', padding: '30px', borderRadius: '24px', width: '500px', border: '1px solid rgba(255,255,255,0.1)' }}
+                        >
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '20px' }}>새 파티 모집하기</h2>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <input
+                                    placeholder="스터디 주제 / 모각코 제목"
+                                    value={newGroup.title}
+                                    onChange={(e) => setNewGroup({ ...newGroup, title: e.target.value })}
+                                    style={inputStyle}
+                                />
+                                <textarea
+                                    placeholder="어떤 활동을 하나요? (시간, 장소, 목표 등)"
+                                    value={newGroup.description}
+                                    onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
+                                    style={{ ...inputStyle, height: '100px', resize: 'none' }}
+                                />
+                                <input
+                                    placeholder="태그 (예: React, 모각코, 초보)"
+                                    value={newGroup.tech_tags}
+                                    onChange={(e) => setNewGroup({ ...newGroup, tech_tags: e.target.value })}
+                                    style={inputStyle}
+                                />
+                                <input
+                                    placeholder="카카오톡 오픈채팅방 링크 URL"
+                                    value={newGroup.open_chat_url}
+                                    onChange={(e) => setNewGroup({ ...newGroup, open_chat_url: e.target.value })}
+                                    style={inputStyle}
+                                />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <label style={{ color: '#cbd5e1' }}>최대 인원:</label>
+                                    <input
+                                        type="number"
+                                        min="2" max="50"
+                                        value={newGroup.max_members}
+                                        onChange={(e) => setNewGroup({ ...newGroup, max_members: e.target.value })}
+                                        style={{ ...inputStyle, width: '80px' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                                <button onClick={() => setIsCreating(false)} style={{ flex: 1, background: '#334155', color: '#cbd5e1', padding: '12px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>취소</button>
+                                <button onClick={handleCreateGroup} style={{ flex: 1, background: '#6366f1', color: 'white', padding: '12px', borderRadius: '10px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>모집 시작</button>
                             </div>
                         </motion.div>
                     </div>
-                )}
-            </AnimatePresence>
+                )
+            }
 
-            {/* Create Group Modal */}
-            {isCreating && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.8)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    zIndex: 100
-                }}>
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        style={{ background: '#1e293b', padding: '30px', borderRadius: '24px', width: '500px', border: '1px solid rgba(255,255,255,0.1)' }}
-                    >
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '20px' }}>새 파티 모집하기</h2>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            <input
-                                placeholder="스터디 주제 / 모각코 제목"
-                                value={newGroup.title}
-                                onChange={(e) => setNewGroup({ ...newGroup, title: e.target.value })}
-                                style={inputStyle}
-                            />
-                            <textarea
-                                placeholder="어떤 활동을 하나요? (시간, 장소, 목표 등)"
-                                value={newGroup.description}
-                                onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
-                                style={{ ...inputStyle, height: '100px', resize: 'none' }}
-                            />
-                            <input
-                                placeholder="태그 (예: React, 모각코, 초보)"
-                                value={newGroup.tech_tags}
-                                onChange={(e) => setNewGroup({ ...newGroup, tech_tags: e.target.value })}
-                                style={inputStyle}
-                            />
-                            <input
-                                placeholder="카카오톡 오픈채팅방 링크 URL"
-                                value={newGroup.open_chat_url}
-                                onChange={(e) => setNewGroup({ ...newGroup, open_chat_url: e.target.value })}
-                                style={inputStyle}
-                            />
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <label style={{ color: '#cbd5e1' }}>최대 인원:</label>
-                                <input
-                                    type="number"
-                                    min="2" max="50"
-                                    value={newGroup.max_members}
-                                    onChange={(e) => setNewGroup({ ...newGroup, max_members: e.target.value })}
-                                    style={{ ...inputStyle, width: '80px' }}
-                                />
-                            </div>
-                        </div>
-
-                        <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
-                            <button onClick={() => setIsCreating(false)} style={{ flex: 1, background: '#334155', color: '#cbd5e1', padding: '12px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>취소</button>
-                            <button onClick={handleCreateGroup} style={{ flex: 1, background: '#6366f1', color: 'white', padding: '12px', borderRadius: '10px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>모집 시작</button>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
-
-        </div>
+            <ProfileSummaryModal
+                userId={selectedUserId}
+                isOpen={!!selectedUserId}
+                onClose={() => setSelectedUserId(null)}
+            />
+        </div >
     );
 };
 

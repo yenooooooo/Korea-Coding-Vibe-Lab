@@ -10,6 +10,18 @@ import Login from './features/auth/Login'
 import SignUp from './features/auth/SignUp'
 import Profile from './pages/Profile'
 import Admin from './pages/Admin'
+import VibeShop from './pages/VibeShop'
+import Quest from './pages/Quest'
+import Inventory from './pages/Inventory'
+import BattleArena from './pages/BattleArena'
+import Exchange from './pages/Exchange'
+import VibeSandbox from './pages/VibeSandbox'
+import VibeMarket from './pages/VibeMarket'
+import VibeDNA from './pages/VibeDNA'
+import SeasonPass from './pages/SeasonPass'
+import Ranking from './pages/Ranking'
+import Friends from './pages/Friends'
+import DirectMessages from './pages/DirectMessages'
 import { AuthProvider } from './context/AuthContext'
 import { useAnalytics } from './hooks/useAnalytics'
 
@@ -27,17 +39,37 @@ function AppRoutes() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/shop" element={<VibeShop />} />
+                <Route path="/quest" element={<Quest />} />
+                <Route path="/inventory" element={<Inventory />} />
+                <Route path="/battle" element={<BattleArena />} />
+                <Route path="/battle/:roomId" element={<BattleArena />} />
+                <Route path="/exchange" element={<Exchange />} />
+                <Route path="/sandbox" element={<VibeSandbox />} />
+                <Route path="/market" element={<VibeMarket />} />
+                <Route path="/vibe-dna" element={<VibeDNA />} />
+                <Route path="/season-pass" element={<SeasonPass />} />
+                <Route path="/ranking" element={<Ranking />} />
+                <Route path="/friends" element={<Friends />} />
+                <Route path="/messages" element={<DirectMessages />} />
                 <Route path="/admin" element={<Admin />} />
             </Route>
         </Routes>
     )
 }
 
+import { ToastProvider } from './context/ToastContext'
+import { FocusCamProvider } from './context/FocusCamContext'
+
 function App() {
     return (
-        <AuthProvider>
-            <AppRoutes />
-        </AuthProvider>
+        <ToastProvider>
+            <AuthProvider>
+                <FocusCamProvider>
+                    <AppRoutes />
+                </FocusCamProvider>
+            </AuthProvider>
+        </ToastProvider>
     )
 }
 

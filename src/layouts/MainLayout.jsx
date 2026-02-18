@@ -1,21 +1,351 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Megaphone, X, Vote, CheckCircle2 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import GlobalBanner from '../components/GlobalBanner';
+import AdminEntryToast from '../components/AdminEntryToast';
+import ScrollToTop from '../components/ScrollToTop';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 const MainLayout = () => {
+    const { user } = useAuth();
+    const location = useLocation();
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [activeVibe, setActiveVibe] = useState('default');
+    const [announcement, setAnnouncement] = useState(null);
+    const [isGlitching, setIsGlitching] = useState(false);
+    const [activePoll, setActivePoll] = useState(null);
+    const [voted, setVoted] = useState(false);
+
+    const handleVote = async (choice) => {
+        if (!activePoll?._broadcastId || !user) return;
+
+        // Optimistic UI Update (즉시 반응)
+        setVoted(true);
+
+        try {
+            // upsert: 기존 투표가 있으면 수정, 없으면 삽입
+            const { error } = await supabase.from('poll_votes').upsert({
+                broadcast_id: activePoll._broadcastId,
+                user_id: user.id,
+                vote: choice,
+                created_at: new Date() // created_at 갱신 (선택사항)
+            }, { onConflict: 'broadcast_id, user_id' });
+
+            if (error) throw error;
+
+            console.log('투표 완료:', choice);
+        } catch (err) {
+            console.error('투표 실패:', err);
+            alert('투표 처리에 실패했습니다. 다시 시도해주세요.');
+            setVoted(false);
+        }
+    };
+
+    const fireConfetti = () => {
+        if (window.confetti) {
+            window.confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#3b82f6', '#a855f7', '#10b981', '#ef4444']
+            });
+        } else {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.js';
+            script.onload = () => {
+                window.confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#3b82f6', '#a855f7', '#10b981', '#ef4444']
+                });
+            };
+            document.head.appendChild(script);
+        }
+    };
+
+    // 공지/효과/투표 수신 기록
+    const recordBroadcastView = async (broadcastId) => {
+        if (!user?.id) return;
+        await supabase.from('broadcast_views').insert({
+            broadcast_id: broadcastId,
+            user_id: user.id
+        }).catch(err => console.log('View already recorded or error:', err));
+    };
+
+    useEffect(() => {
+        // Secure Broadcast Listener (Listen to Table Changes)
+        const channel = supabase
+            .channel('secure_broadcasts')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'admin_broadcasts'
+                },
+                (payload) => {
+                    const { type, payload: data, id: broadcastId } = payload.new;
+
+                    // 수신 기록
+                    recordBroadcastView(broadcastId);
+
+                    if (type === 'vibe_change') {
+                        setActiveVibe(data.vibe);
+                    } else if (type === 'announcement') {
+                        setAnnouncement(data);
+                    } else if (type === 'fx') {
+                        if (data.fx === 'confetti') {
+                            fireConfetti();
+                        } else if (data.fx === 'glitch') {
+                            setIsGlitching(true);
+                            setTimeout(() => setIsGlitching(false), 2000);
+                        }
+                    } else if (type === 'poll') {
+                        setActivePoll({ ...data, _broadcastId: broadcastId });
+                        setVoted(false);
+                    }
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'admin_broadcasts'
+                },
+                (payload) => {
+                    const { type, active } = payload.new;
+                    if (!active) {
+                        if (type === 'announcement') setAnnouncement(null);
+                        if (type === 'poll') setActivePoll(null);
+                    }
+                }
+            )
+            .subscribe();
+
+        // Admin Presence Tracking (Oracle Eye)
+        const presenceChannel = supabase.channel('online-users', {
+            config: { presence: { key: user?.id || 'guest-' + Math.random().toString(36).substr(2, 5) } }
+        });
+
+        presenceChannel.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                await presenceChannel.track({
+                    user_id: user?.id,
+                    username: user?.user_metadata?.username || 'Guest',
+                    currentPath: location.pathname,
+                    lastActive: new Date().toISOString()
+                });
+            }
+        });
+
+        const localVibeHandler = (e) => setActiveVibe(e.detail);
+        window.addEventListener('local_vibe_change', localVibeHandler);
+
+        return () => {
+            supabase.removeChannel(channel);
+            supabase.removeChannel(presenceChannel);
+            window.removeEventListener('local_vibe_change', localVibeHandler);
+        };
+    }, [user, location.pathname]);
+
+    // Vibe Configurations
+    const vibeStyles = {
+        default: { background: 'radial-gradient(circle at top right, #1e293b, #0f172a)' },
+        hyper_blue: { background: 'radial-gradient(circle at top right, #1e3a8a, #020617)', filter: 'hue-rotate(-10deg) saturate(1.2)' },
+        purple_glow: { background: 'radial-gradient(circle at top right, #4c1d95, #0f172a)', filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.3))' },
+        emerald_chill: { background: 'radial-gradient(circle at top right, #064e3b, #020617)', filter: 'contrast(1.1) brightness(0.9)' },
+        blood_moon: { background: 'radial-gradient(circle at top right, #7f1d1d, #0f172a)', filter: 'sepia(0.2) saturate(1.5)' },
+    };
+
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'radial-gradient(circle at top right, #1e293b, #0f172a)' }}>
-            <Sidebar />
-            <main style={{
-                marginLeft: '260px',
-                flex: 1,
-                padding: '40px',
-                maxWidth: '1200px',
-                width: '100%'
-            }}>
-                <Outlet />
-            </main>
-        </div>
+        <>
+            {/* CSS Keyframes */}
+            <style>{`
+                @keyframes adminAvatarBorder {
+                    0% { border-color: #a855f7; box-shadow: 0 0 0 2px #a855f7, 0 0 12px rgba(168,85,247,0.4); }
+                    33% { border-color: #6366f1; box-shadow: 0 0 0 2px #6366f1, 0 0 12px rgba(99,102,241,0.4); }
+                    66% { border-color: #f472b6; box-shadow: 0 0 0 2px #f472b6, 0 0 12px rgba(244,114,182,0.4); }
+                    100% { border-color: #a855f7; box-shadow: 0 0 0 2px #a855f7, 0 0 12px rgba(168,85,247,0.4); }
+                }
+                .admin-avatar-animated {
+                    animation: adminAvatarBorder 3s ease-in-out infinite;
+                }
+                @keyframes announcementPulse {
+                    0%, 100% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.05); opacity: 0.8; }
+                }
+                @keyframes glitchEffect {
+                    0% { transform: translate(0); filter: hue-rotate(0deg); }
+                    20% { transform: translate(-5px, 5px); filter: hue-rotate(90deg); }
+                    40% { transform: translate(5px, -5px); filter: hue-rotate(180deg); }
+                    60% { transform: translate(-5px, -5px); filter: hue-rotate(270deg); }
+                    80% { transform: translate(5px, 5px); filter: hue-rotate(360deg); }
+                    100% { transform: translate(0); }
+                }
+                .glitch-active {
+                    animation: glitchEffect 0.2s infinite;
+                    pointer-events: none;
+                }
+            `}</style>
+
+            <div
+                className={isGlitching ? 'glitch-active' : ''}
+                style={{
+                    display: 'flex',
+                    minHeight: '100vh',
+                    transition: 'all 1s ease',
+                    ...vibeStyles[activeVibe] || vibeStyles.default,
+                    filter: vibeStyles[activeVibe]?.filter || 'none',
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}
+            >
+                {isGlitching && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(255,0,0,0.1)', zIndex: 99999,
+                        mixBlendMode: 'overlay'
+                    }} />
+                )}
+                <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(prev => !prev)} />
+                <div style={{
+                    marginLeft: sidebarCollapsed ? '68px' : '260px',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    maxWidth: '1200px',
+                    width: '100%',
+                    transition: 'margin-left 0.3s ease',
+                }}>
+                    <GlobalBanner />
+                    <main style={{ flex: 1, padding: '40px' }}>
+                        <Outlet />
+                    </main>
+                </div>
+            </div>
+
+            {/* Global Announcement Overlay */}
+            <AnimatePresence>
+                {announcement && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            zIndex: 10000, padding: '40px'
+                        }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.8, y: 50 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.8, y: 50 }}
+                            style={{
+                                maxWidth: '600px', width: '100%', textAlign: 'center',
+                                background: 'linear-gradient(145deg, #1e293b, #0f172a)',
+                                padding: '40px', borderRadius: '32px',
+                                border: '2px solid rgba(245, 158, 11, 0.5)',
+                                boxShadow: '0 20px 80px rgba(245, 158, 11, 0.2)'
+                            }}
+                        >
+                            <Megaphone size={64} color="#f59e0b" style={{ marginBottom: '24px', animation: 'announcementPulse 2s infinite' }} />
+                            <div style={{ color: '#f59e0b', fontSize: '0.9rem', fontWeight: 'bold', letterSpacing: '2px', marginBottom: '12px' }}>
+                                SYSTEM NOTIFICATION
+                            </div>
+                            <h2 style={{ color: '#fff', fontSize: '1.8rem', marginBottom: '24px', lineHeight: '1.4' }}>
+                                {announcement.message}
+                            </h2>
+                            <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '32px' }}>
+                                From: <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>{announcement.sender}</span>
+                            </div>
+                            <button
+                                onClick={() => setAnnouncement(null)}
+                                style={{
+                                    padding: '12px 32px', borderRadius: '16px', border: 'none',
+                                    background: 'rgba(255,255,255,0.05)', color: '#fff',
+                                    fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px'
+                                }}
+                            >
+                                <X size={18} /> 닫기
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Oracle Poll Overlay */}
+            <AnimatePresence>
+                {activePoll && (
+                    <motion.div
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 100, opacity: 0 }}
+                        style={{
+                            position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
+                            zIndex: 9999, width: '90%', maxWidth: '400px'
+                        }}
+                    >
+                        <div style={{
+                            background: 'rgba(15, 23, 42, 0.95)',
+                            backdropFilter: 'blur(12px)',
+                            borderRadius: '24px',
+                            padding: '24px',
+                            border: '1px solid rgba(129, 140, 248, 0.3)',
+                            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                            textAlign: 'center'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '16px' }}>
+                                <Vote size={20} color="#818cf8" />
+                                <span style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 'bold', letterSpacing: '1px' }}>ORACLE POLL</span>
+                            </div>
+                            <h3 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '20px' }}>{activePoll.question}</h3>
+
+                            {!voted ? (
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <button
+                                        onClick={() => handleVote('yes')}
+                                        style={{ flex: 1, padding: '10px', borderRadius: '12px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
+                                    >
+                                        👍 찬성
+                                    </button>
+                                    <button
+                                        onClick={() => handleVote('no')}
+                                        style={{ flex: 1, padding: '10px', borderRadius: '12px', border: 'none', background: '#ef4444', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
+                                    >
+                                        👎 반대
+                                    </button>
+                                </div>
+                            ) : (
+                                <motion.div
+                                    initial={{ scale: 0.8 }}
+                                    animate={{ scale: 1 }}
+                                    style={{ color: '#34d399', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '1rem', fontWeight: 'bold' }}
+                                >
+                                    <CheckCircle2 size={24} /> 투표 완료! (참여 감사합니다)
+                                </motion.div>
+                            )}
+
+                            <button
+                                onClick={() => setActivePoll(null)}
+                                style={{ marginTop: '16px', color: '#64748b', background: 'none', border: 'none', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}
+                            >
+                                닫기 (다음에 참여)
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <ScrollToTop />
+            <AdminEntryToast />
+        </>
     );
 };
 

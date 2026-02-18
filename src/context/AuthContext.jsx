@@ -10,18 +10,39 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null)
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
 
     const fetchProfile = async (userId) => {
-        if (!userId) {
-            setProfile(null);
-            return;
+        try {
+            setError(null);
+            if (!userId) {
+                setProfile(null);
+                return;
+            }
+            const { data, error: fetchError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+
+            if (fetchError) throw fetchError;
+
+            if (data) {
+                if (data.is_banned) {
+                    alert("이 계정은 정지되었습니다.");
+                    await supabase.auth.signOut();
+                    setUser(null);
+                    setProfile(null);
+                    window.location.href = '/';
+                    return;
+                }
+                setProfile(data);
+            }
+        } catch (err) {
+            console.error('Error fetching profile:', err);
+            setError(err.message);
+            // Optional: fallback profile or keep null
         }
-        const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single();
-        if (data) setProfile(data);
     };
 
     useEffect(() => {
@@ -35,13 +56,49 @@ export const AuthProvider = ({ children }) => {
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user ?? null)
-            if (session?.user) fetchProfile(session.user.id);
-            else setProfile(null);
+            if (session?.user) {
+                fetchProfile(session.user.id);
+            } else {
+                setProfile(null);
+            }
             setLoading(false)
         })
 
         return () => subscription.unsubscribe()
     }, [])
+
+    // Realtime Profile Sync
+    useEffect(() => {
+        if (!user) return;
+
+        const channel = supabase
+            .channel(`profile_sync_${user.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'profiles',
+                    filter: `id=eq.${user.id}`
+                },
+                (payload) => {
+                    console.log('Profile updated in real-time:', payload.new);
+                    setProfile(payload.new);
+
+                    // Immediate Ban Enforcement
+                    if (payload.new.is_banned) {
+                        alert("관리자에 의해 계정이 정지되었습니다.");
+                        supabase.auth.signOut();
+                        window.location.href = '/';
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user]);
 
     const signUp = async (email, password) => {
         return supabase.auth.signUp({ email, password })
@@ -49,6 +106,15 @@ export const AuthProvider = ({ children }) => {
 
     const signIn = async (email, password) => {
         return supabase.auth.signInWithPassword({ email, password })
+    }
+
+    const signInWithOAuth = async (provider) => {
+        return supabase.auth.signInWithOAuth({
+            provider: provider,
+            options: {
+                redirectTo: window.location.origin
+            }
+        })
     }
 
     const signOut = async () => {
@@ -61,8 +127,10 @@ export const AuthProvider = ({ children }) => {
         refetchProfile: () => user && fetchProfile(user.id),
         signUp,
         signIn,
+        signInWithOAuth,
         signOut,
-        loading
+        loading,
+        error
     }
 
     return (
