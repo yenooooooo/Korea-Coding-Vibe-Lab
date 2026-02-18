@@ -13,6 +13,7 @@ import { getVibeLevel } from '../utils/vibeLevel';
 import { fetchEquippedDetails, VibeName, getBannerStyle } from '../utils/vibeItems.jsx';
 import LevelGuideModal from '../components/LevelGuideModal';
 import PointGuideModal from '../components/PointGuideModal';
+import UserJourneyIntegration from '../components/UserJourneyIntegration';
 
 const Profile = () => {
     const { user, profile: authProfile } = useAuth();
@@ -831,6 +832,22 @@ const Profile = () => {
                 isOpen={showPointGuide}
                 onClose={() => setShowPointGuide(false)}
             />
+
+            {/* 사용자 여정 및 퀘스트 섹션 */}
+            {profile && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                    style={{ marginTop: '60px', paddingTop: '60px', borderTop: '1px solid rgba(255,255,255,0.05)' }}
+                >
+                    <UserJourneyIntegration
+                        userPoints={profile.total_points || 0}
+                        userStreak={profile.current_streak || 0}
+                        userId={user?.id}
+                    />
+                </motion.div>
+            )}
 
         </div>
     );

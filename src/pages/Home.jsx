@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import ProfileSummaryModal from '../components/ProfileSummaryModal';
+import DailyInspirationBanner from '../components/DailyInspirationBanner';
+import StarterPack from '../components/StarterPack';
 import { getVibeLevel, getStreakCombo } from '../utils/vibeLevel';
 import { getTodayKST } from '../utils/dateUtils';
 import { VibeName, fetchBatchEquippedDetails } from '../utils/vibeItems.jsx';
@@ -633,6 +635,9 @@ const Home = () => {
                 </motion.div>
             </section>
 
+            {/* ==================== 일일 영감 배너 ==================== */}
+            <DailyInspirationBanner />
+
             {/* ==================== 대시보드 (기존 유지 - 위치만 변경) ==================== */}
             <div style={{
                 maxWidth: '1000px',
@@ -1038,6 +1043,15 @@ const Home = () => {
                     )}
                 </div>
             </motion.div>
+
+            {/* ==================== 스타터 팩 ==================== */}
+            <section style={{
+                maxWidth: '1200px',
+                margin: '80px auto',
+                padding: '0 20px'
+            }}>
+                <StarterPack />
+            </section>
 
             {/* Philosophy Section (유지 + 약간 개선) */}
             <section style={{ maxWidth: '1200px', margin: '0 auto 120px', padding: '0 20px' }}>
