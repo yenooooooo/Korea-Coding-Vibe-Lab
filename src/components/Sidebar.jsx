@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getVibeLevel } from '../utils/vibeLevel';
 
-const Sidebar = ({ isNavOpen = false, onToggle = () => {}, notificationCount = 0, onNotificationClick = () => {} }) => {
+const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 0, onNotificationClick = () => { } }) => {
     // CSS 애니메이션 스타일 추가
     React.useEffect(() => {
         const style = document.createElement('style');
@@ -38,6 +38,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => {}, notificationCount = 0
     const { user, profile, signOut } = useAuth();
     const navigate = useNavigate();
     const [notificationPulse, setNotificationPulse] = React.useState(false);
+    const [targetCategory, setTargetCategory] = React.useState(null);
 
     const handleLogout = async () => {
         await signOut();
@@ -52,6 +53,32 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => {}, notificationCount = 0
             return () => clearTimeout(timer);
         }
     }, [notificationCount]);
+
+    // 카테고리 자동 스크롤
+    React.useEffect(() => {
+        if (isNavOpen && targetCategory) {
+            const timer = setTimeout(() => {
+                const element = document.getElementById(`category-${targetCategory}`);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                setTargetCategory(null);
+            }, 300); // 패널이 열리는 애니메이션 시간과 맞춤
+            return () => clearTimeout(timer);
+        }
+    }, [isNavOpen, targetCategory]);
+
+    const handleCategoryClick = (categoryId) => {
+        if (!isNavOpen) {
+            setTargetCategory(categoryId);
+            onToggle();
+        } else {
+            const element = document.getElementById(`category-${categoryId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    };
 
     const navCategories = [
         {
@@ -175,11 +202,11 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => {}, notificationCount = 0
                     {navCategories.map((category) => (
                         <button
                             key={category.id}
-                            onClick={onToggle}
+                            onClick={() => handleCategoryClick(category.id)}
                             style={{
                                 width: '44px', height: '44px',
                                 border: 'none',
-                                background: 'transparent',
+                                background: targetCategory === category.id ? category.bgColor : 'transparent',
                                 borderRadius: '12px',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 color: category.color,
@@ -193,7 +220,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => {}, notificationCount = 0
                                 e.currentTarget.style.transform = 'scale(1.1)';
                             }}
                             onMouseOut={(e) => {
-                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.background = targetCategory === category.id ? category.bgColor : 'transparent';
                                 e.currentTarget.style.transform = 'scale(1)';
                             }}
                         >
@@ -419,10 +446,9 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => {}, notificationCount = 0
                                 </button>
                             </div>
 
-                            {/* 전체 메뉴 */}
                             <nav style={{ display: 'flex', flexDirection: 'column', gap: '28px', flex: 1 }}>
                                 {navCategories.map((category) => (
-                                    <div key={category.id}>
+                                    <div key={category.id} id={`category-${category.id}`}>
                                         <div style={{
                                             fontSize: '0.7rem',
                                             color: '#475569',

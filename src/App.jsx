@@ -22,6 +22,13 @@ import SeasonPass from './pages/SeasonPass'
 import Ranking from './pages/Ranking'
 import Friends from './pages/Friends'
 import DirectMessages from './pages/DirectMessages'
+import MentorFinding from './pages/MentorFinding'
+import InteractiveDemo from './pages/InteractiveDemo'
+import CanIDoItPage from './pages/CanIDoItPage'
+import WeeklyChallengePageWrapper from './pages/WeeklyChallengePageWrapper'
+import GalleryPage from './pages/GalleryPage'
+import LearnPage from './pages/LearnPage'
+import CommunityPage from './pages/CommunityPage'
 import { AuthProvider } from './context/AuthContext'
 import { useAnalytics } from './hooks/useAnalytics'
 
@@ -52,6 +59,13 @@ function AppRoutes() {
                 <Route path="/ranking" element={<Ranking />} />
                 <Route path="/friends" element={<Friends />} />
                 <Route path="/messages" element={<DirectMessages />} />
+                <Route path="/mentor" element={<MentorFinding />} />
+                <Route path="/demo" element={<InteractiveDemo />} />
+                <Route path="/diagnosis" element={<CanIDoItPage />} />
+                <Route path="/challenge" element={<WeeklyChallengePageWrapper />} />
+                <Route path="/gallery" element={<GalleryPage />} />
+                <Route path="/learn" element={<LearnPage />} />
+                <Route path="/moments" element={<CommunityPage />} />
                 <Route path="/admin" element={<Admin />} />
             </Route>
         </Routes>

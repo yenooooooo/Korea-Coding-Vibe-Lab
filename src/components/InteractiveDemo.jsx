@@ -570,7 +570,7 @@ const TodoAppDemo = () => {
                             border: '1px solid rgba(99, 102, 241, 0.2)'
                         }}
                     >
-                        <span style({
+                        <span style={{
                             color: '#e2e8f0',
                             fontSize: '0.95rem',
                             flex: 1

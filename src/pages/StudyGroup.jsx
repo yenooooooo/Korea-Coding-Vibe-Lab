@@ -226,11 +226,16 @@ const StudyGroup = () => {
             .update({ is_active: false })
             .eq('id', groupId);
 
-        if (!error) {
-            alert('모집이 마감되었습니다.');
-            closeGroupDetail();
-            fetchStudyGroups();
+        if (error) {
+            alert('모집 마감 중 오류가 발생했습니다.');
+            return;
         }
+
+        // 즉시 모달 닫기 (사용자 경험 향상)
+        closeGroupDetail();
+
+        // 배경에서 목록 새로고침
+        fetchStudyGroups();
     };
 
     // 그룹 정보 수정 시작

@@ -281,12 +281,17 @@ const MainLayout = () => {
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
-                    maxWidth: '1200px',
-                    width: '100%',
+                    width: 'auto', // Fix horizontal scroll issue
                     transition: 'margin-left 0.3s ease',
                 }}>
                     <GlobalBanner />
-                    <main style={{ flex: 1, padding: '40px' }}>
+                    <main style={{
+                        flex: 1,
+                        padding: '40px',
+                        width: '100%',
+                        maxWidth: '1280px', // Global max width constraint
+                        margin: '0 auto'    // Center content
+                    }}>
                         <Outlet />
                     </main>
                 </div>
