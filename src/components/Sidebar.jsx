@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, BarChart, User, Swords, Trophy, Target, ShoppingBag, Ticket, Backpack, Store, MessageCircle, BookOpen, Fingerprint, Box, Bell } from 'lucide-react';
+import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, BarChart, User, Swords, Trophy, Target, ShoppingBag, Ticket, Backpack, Store, MessageCircle, BookOpen, Fingerprint, Box, Bell, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getVibeLevel } from '../utils/vibeLevel';
@@ -146,6 +146,17 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
             items: [
                 { name: '바이브 DNA', path: '/vibe-dna', icon: <Fingerprint size={18} /> },
                 { name: '샌드박스 (Sandbox)', path: '/sandbox', icon: <Box size={18} /> },
+            ]
+        },
+        {
+            id: 'learn',
+            title: 'Learn',
+            icon: <Lightbulb size={24} />,
+            color: '#f59e0b',
+            bgColor: 'rgba(245, 158, 11, 0.1)',
+            borderColor: '#f59e0b',
+            items: [
+                { name: '따라하기 (Learn)', path: '/learn', icon: <Lightbulb size={18} /> },
             ]
         }
     ];
