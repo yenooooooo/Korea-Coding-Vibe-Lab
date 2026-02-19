@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Sparkles, Brain, Code2, Heart, Users, Zap, ChevronLeft, ChevronRight, CheckCircle, Clock, Target, Trophy, MessageCircle } from 'lucide-react';
 
 const About = () => {
+    const navigate = useNavigate();
     const [currentCaseIndex, setCurrentCaseIndex] = useState(0);
     const [expandedFAQ, setExpandedFAQ] = useState(null);
 
@@ -409,6 +411,7 @@ const About = () => {
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/mentor')}
                         style={{
                             padding: '16px 40px',
                             background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
