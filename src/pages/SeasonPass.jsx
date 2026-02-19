@@ -646,6 +646,12 @@ const SeasonPass = () => {
 
         let updateData = {};
 
+        // 1. Get the reward details to know how many points to give
+        const rewardList = isPremiumReward ? PREMIUM_REWARDS : FREE_REWARDS;
+        const rewardItem = rewardList.find(r => r.tier === tier);
+        const rewardPoints = rewardItem ? rewardItem.amount : 0;
+
+        // 2. Prevent duplicate claims
         if (isPremiumReward) {
             if (!isPremium || premiumClaimedTiers.includes(tier)) return;
             const newPremiumClaimed = [...premiumClaimedTiers, tier];
@@ -658,6 +664,7 @@ const SeasonPass = () => {
             updateData = { claimed_tiers: newClaimed };
         }
 
+        // 3. Mark the tier as claimed in user_season_progress
         const { error } = await supabase
             .from('user_season_progress')
             .update(updateData)
@@ -666,7 +673,23 @@ const SeasonPass = () => {
 
         if (error) {
             console.error("보상 수령 오류:", error);
-            // 에러 발생 시 UI 롤백 해주는 로직이 있으면 좋지만 일단 로깅
+            return;
+        }
+
+        // 4. Actually grant the points to the user's profile via RPC or direct update
+        if (rewardPoints > 0) {
+            try {
+                // Fetch current points safely
+                const { data: profileData } = await supabase.from('profiles').select('total_points').eq('id', user.id).single();
+                const currentPoints = profileData ? (profileData.total_points || 0) : 0;
+
+                await supabase
+                    .from('profiles')
+                    .update({ total_points: currentPoints + rewardPoints })
+                    .eq('id', user.id);
+            } catch (err) {
+                console.error("포인트 지급 오류:", err);
+            }
         }
     };
 
