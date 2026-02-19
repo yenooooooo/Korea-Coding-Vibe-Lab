@@ -61,44 +61,33 @@ const Payment = () => {
             return;
         }
 
-        setProcessing(true);
-
         try {
-            // SDK 로드 대기
-            let attempts = 0;
-            while (!window.tossPayments && attempts < 10) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-                attempts++;
-            }
-
-            if (!window.tossPayments) {
-                throw new Error('토스페이먼츠 SDK를 불러올 수 없습니다');
-            }
+            setProcessing(true);
 
             const clientKey = import.meta.env.VITE_TOSS_CLIENT_KEY;
             if (!clientKey) {
-                throw new Error('토스페이먼츠 클라이언트 키가 설정되지 않았습니다');
+                addToast('결제 설정이 완료되지 않았습니다', 'error');
+                return;
             }
 
             const amount = calculateAmount();
 
-            // Checkout API 사용
-            const params = new URLSearchParams({
-                clientKey: clientKey,
-                amount: amount,
-                orderId: orderId,
-                orderName: `${sessionData.mentors.name} 멘토링 수업`,
-                customerEmail: user.email,
-                customerName: user.user_metadata?.username || user.email,
-                successUrl: `${window.location.origin}/payment-success`,
-                failUrl: `${window.location.origin}/payment-fail`
-            });
+            // 토스페이먼츠 Checkout으로 리다이렉트
+            const checkoutUrl = new URL('https://payment.tosspayments.com/checkout/pay');
+            checkoutUrl.searchParams.append('clientKey', clientKey);
+            checkoutUrl.searchParams.append('amount', amount.toString());
+            checkoutUrl.searchParams.append('orderId', orderId);
+            checkoutUrl.searchParams.append('orderName', `${sessionData.mentors.name} 멘토링 수업 (${sessionData.duration_minutes}분)`);
+            checkoutUrl.searchParams.append('customerEmail', user.email);
+            checkoutUrl.searchParams.append('customerName', user.user_metadata?.username || user.email);
+            checkoutUrl.searchParams.append('successUrl', `${window.location.origin}/payment-success`);
+            checkoutUrl.searchParams.append('failUrl', `${window.location.origin}/payment-fail`);
 
-            window.location.href = `https://payment.tosspayments.com/checkout/pay?${params.toString()}`;
+            window.location.href = checkoutUrl.toString();
 
         } catch (error) {
-            console.error('Payment processing error:', error);
-            addToast(`결제 처리 중 오류: ${error.message}`, 'error');
+            console.error('Payment error:', error);
+            addToast('결제 처리 중 오류가 발생했습니다', 'error');
         } finally {
             setProcessing(false);
         }
