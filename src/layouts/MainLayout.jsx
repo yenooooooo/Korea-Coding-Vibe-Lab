@@ -7,6 +7,8 @@ import GlobalBanner from '../components/GlobalBanner';
 import AdminEntryToast from '../components/AdminEntryToast';
 import ScrollToTop from '../components/ScrollToTop';
 import NotificationPanel from '../components/NotificationPanel';
+import SearchModal from '../components/SearchModal';
+import OnboardingTour from '../components/OnboardingTour';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,6 +23,19 @@ const MainLayout = () => {
     const [isGlitching, setIsGlitching] = useState(false);
     const [activePoll, setActivePoll] = useState(null);
     const [voted, setVoted] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+    // Ctrl+K 검색 단축키
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsSearchOpen(prev => !prev);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     const handleVote = async (choice) => {
         if (!activePoll?._broadcastId || !user) return;
@@ -428,6 +443,8 @@ const MainLayout = () => {
 
             <ScrollToTop />
             <AdminEntryToast />
+            <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+            <OnboardingTour />
 
             {/* 실시간 알림 팝업 토스트 */}
             <AnimatePresence>

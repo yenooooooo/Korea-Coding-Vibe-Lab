@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, BarChart, User, Swords, Trophy, Target, ShoppingBag, Ticket, Backpack, Store, MessageCircle, BookOpen, Fingerprint, Box, Bell, Lightbulb, Users2, Zap, Microscope, Award, Image, Heart, Calendar } from 'lucide-react';
+import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, BarChart, User, Swords, Trophy, Target, ShoppingBag, Ticket, Backpack, Store, MessageCircle, BookOpen, Fingerprint, Box, Bell, Lightbulb, Users2, Zap, Microscope, Award, Image, Heart, Calendar, Settings, Search, Coins } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getVibeLevel } from '../utils/vibeLevel';
@@ -124,6 +124,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                 { name: 'AI 스터디 (Study)', path: '/ai-study', icon: <Lightbulb size={18} /> },
                 { name: '자기진단 (Diagnosis)', path: '/diagnosis', icon: <Microscope size={18} /> },
                 { name: '주간 챌린지 (Challenge)', path: '/challenge', icon: <Award size={18} /> },
+                { name: '포인트 내역 (Points)', path: '/point-history', icon: <Coins size={18} /> },
             ]
         },
         {
@@ -140,6 +141,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                 { name: '출석 (Attendance)', path: '/attendance', icon: <CalendarCheck size={18} /> },
                 { name: '스터디 (Study)', path: '/study', icon: <BookOpen size={18} /> },
                 { name: '따뜻한 순간 (Moments)', path: '/moments', icon: <Heart size={18} /> },
+                { name: '설정 (Settings)', path: '/settings', icon: <Settings size={18} /> },
             ]
         },
         {
@@ -176,6 +178,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
             borderColor: '#ec4899',
             items: [
                 { name: '라이브 갤러리 (Gallery)', path: '/gallery', icon: <Image size={18} /> },
+                { name: '프로젝트 쇼케이스 (Showcase)', path: '/showcase', icon: <Trophy size={18} /> },
             ]
         },
         {

@@ -39,6 +39,10 @@ import GalleryPage from './pages/GalleryPage'
 import LearnPage from './pages/LearnPage'
 import CommunityPage from './pages/CommunityPage'
 import StarterGuide from './pages/StarterGuide'
+import Settings from './pages/Settings'
+import NotFound from './pages/NotFound'
+import ProjectShowcase from './pages/ProjectShowcase'
+import PointHistory from './pages/PointHistory'
 import { AuthProvider } from './context/AuthContext'
 import { useAnalytics } from './hooks/useAnalytics'
 
@@ -87,6 +91,10 @@ function AppRoutes() {
                 <Route path="/moments" element={<CommunityPage />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/starter-guide" element={<StarterGuide />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/showcase" element={<ProjectShowcase />} />
+                <Route path="/point-history" element={<PointHistory />} />
+                <Route path="*" element={<NotFound />} />
             </Route>
         </Routes>
     )
