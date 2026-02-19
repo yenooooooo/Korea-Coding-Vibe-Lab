@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Activity, Coffee, Code2, ArrowRight, Flame, Trophy, Sparkles, Brain, Users, CalendarCheck, Crown, Medal, Check, Lightbulb, BookOpen, MessageSquare, Heart } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import ProfileSummaryModal from '../components/ProfileSummaryModal';
@@ -13,6 +13,7 @@ import { getTodayKST } from '../utils/dateUtils';
 import { VibeName, fetchBatchEquippedDetails } from '../utils/vibeItems.jsx';
 
 const Home = () => {
+    const navigate = useNavigate();
     const { user, profile: authProfile } = useAuth();
     const [todaysHeat, setTodaysHeat] = useState(0);
     const [activeUsers, setActiveUsers] = useState([]);
@@ -412,11 +413,11 @@ const Home = () => {
                         margin: '0 auto'
                     }}
                 >
-                    {/* 경로 1: 튜토리얼 */}
+                    {/* 경로 1: 튜토리얼 (나도 할 수 있을까?) */}
                     <motion.button
                         whileHover={{ scale: 1.05, y: -5 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => {}}
+                        onClick={() => navigate('/diagnosis')}
                         style={{
                             padding: '20px',
                             background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.05))',
@@ -439,11 +440,11 @@ const Home = () => {
                         <span style={{ fontSize: '0.8rem', fontWeight: '400', color: '#94a3b8' }}>5분에 끝내기</span>
                     </motion.button>
 
-                    {/* 경로 2: 따라하기 */}
+                    {/* 경로 2: 따라하기 (따라하기 튜토리얼) */}
                     <motion.button
                         whileHover={{ scale: 1.05, y: -5 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => {}}
+                        onClick={() => navigate('/learn')}
                         style={{
                             padding: '20px',
                             background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05))',
