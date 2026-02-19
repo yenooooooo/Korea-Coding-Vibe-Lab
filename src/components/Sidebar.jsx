@@ -174,6 +174,18 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
             items: [
                 { name: '라이브 갤러리 (Gallery)', path: '/gallery', icon: <Image size={18} /> },
             ]
+        },
+        {
+            id: 'admin',
+            title: 'Admin',
+            icon: <BarChart size={24} />,
+            color: '#a855f7',
+            bgColor: 'rgba(168, 85, 247, 0.1)',
+            borderColor: '#a855f7',
+            items: [
+                { name: '분석 (Analytics)', path: '/admin', icon: <BarChart size={18} /> },
+                { name: '멘토 관리 (Mentors)', path: '/admin-mentors', icon: <Users2 size={18} /> },
+            ]
         }
     ];
 
