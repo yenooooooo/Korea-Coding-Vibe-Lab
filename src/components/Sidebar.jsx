@@ -164,6 +164,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
             items: [
                 { name: '따라하기 (Learn)', path: '/learn', icon: <Lightbulb size={18} /> },
                 { name: '데모 (Demo)', path: '/demo', icon: <Zap size={18} /> },
+                { name: '스타터 가이드 (Guide)', path: '/starter-guide', icon: <BookOpen size={18} /> },
             ]
         },
         {

@@ -38,6 +38,7 @@ import WeeklyChallengePageWrapper from './pages/WeeklyChallengePageWrapper'
 import GalleryPage from './pages/GalleryPage'
 import LearnPage from './pages/LearnPage'
 import CommunityPage from './pages/CommunityPage'
+import StarterGuide from './pages/StarterGuide'
 import { AuthProvider } from './context/AuthContext'
 import { useAnalytics } from './hooks/useAnalytics'
 
@@ -85,6 +86,7 @@ function AppRoutes() {
                 <Route path="/learn" element={<LearnPage />} />
                 <Route path="/moments" element={<CommunityPage />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/starter-guide" element={<StarterGuide />} />
             </Route>
         </Routes>
     )
