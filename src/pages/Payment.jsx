@@ -64,6 +64,13 @@ const Payment = () => {
         setProcessing(true);
 
         try {
+            // SDK 로드 대기
+            let attempts = 0;
+            while (!window.tossPayments && attempts < 10) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                attempts++;
+            }
+
             if (!window.tossPayments) {
                 throw new Error('토스페이먼츠 SDK를 불러올 수 없습니다');
             }
@@ -74,19 +81,20 @@ const Payment = () => {
             }
 
             const amount = calculateAmount();
-            const tossPayments = window.tossPayments(clientKey);
 
-            // 결제 진행
-            await tossPayments.requestPayment({
-                method: 'CARD',
+            // Checkout API 사용
+            const params = new URLSearchParams({
+                clientKey: clientKey,
                 amount: amount,
                 orderId: orderId,
-                orderName: `${sessionData.mentors.name} 멘토링 수업 (${sessionData.duration_minutes}분)`,
+                orderName: `${sessionData.mentors.name} 멘토링 수업`,
                 customerEmail: user.email,
                 customerName: user.user_metadata?.username || user.email,
                 successUrl: `${window.location.origin}/payment-success`,
                 failUrl: `${window.location.origin}/payment-fail`
             });
+
+            window.location.href = `https://payment.tosspayments.com/checkout/pay?${params.toString()}`;
 
         } catch (error) {
             console.error('Payment processing error:', error);
