@@ -27,10 +27,21 @@ const ClassRoom = () => {
         const sessionId = searchParams.get('sessionId');
         if (sessionId) {
             fetchSessionData(sessionId);
+            fetchChatMessages(sessionId);
+            subscribeToChatMessages(sessionId);
         } else {
             addToast('세션 정보가 없습니다', 'error');
             navigate(-1);
         }
+
+        return () => {
+            // Realtime 구독 정리
+            if (sessionData?.id) {
+                supabase
+                    .channel(`chat_${sessionData.id}`)
+                    .unsubscribe();
+            }
+        };
     }, [searchParams]);
 
     const fetchSessionData = async (sessionId) => {
@@ -116,20 +127,77 @@ const ClassRoom = () => {
         }
     };
 
-    const handleSendMessage = async () => {
-        if (!chatInput.trim()) return;
+    const fetchChatMessages = async (sessionId) => {
+        try {
+            const { data, error } = await supabase
+                .from('chat_messages')
+                .select('*')
+                .eq('session_id', sessionId)
+                .order('created_at', { ascending: true });
 
-        const message = {
-            id: Date.now(),
-            sender: user.user_metadata?.username || user.email,
-            text: chatInput,
-            timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+            if (error) throw error;
+
+            const formattedMessages = data.map(msg => ({
+                id: msg.id,
+                sender: msg.sender_name,
+                text: msg.message,
+                timestamp: new Date(msg.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+            }));
+
+            setChatMessages(formattedMessages);
+        } catch (error) {
+            console.error('Error fetching chat messages:', error);
+        }
+    };
+
+    const subscribeToChatMessages = (sessionId) => {
+        const channel = supabase
+            .channel(`chat_${sessionId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'chat_messages',
+                    filter: `session_id=eq.${sessionId}`
+                },
+                (payload) => {
+                    const newMessage = {
+                        id: payload.new.id,
+                        sender: payload.new.sender_name,
+                        text: payload.new.message,
+                        timestamp: new Date(payload.new.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+                    };
+                    setChatMessages(prev => [...prev, newMessage]);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            channel.unsubscribe();
         };
+    };
 
-        setChatMessages([...chatMessages, message]);
-        setChatInput('');
+    const handleSendMessage = async () => {
+        if (!chatInput.trim() || !sessionData) return;
 
-        // TODO: 실시간 채팅 구현 (Supabase Realtime 또는 Agora 메시징)
+        try {
+            const { error } = await supabase
+                .from('chat_messages')
+                .insert({
+                    session_id: sessionData.id,
+                    sender_id: user.id,
+                    sender_name: user.user_metadata?.username || user.email,
+                    message: chatInput
+                });
+
+            if (error) throw error;
+
+            setChatInput('');
+        } catch (error) {
+            console.error('Error sending message:', error);
+            addToast('메시지 전송 실패', 'error');
+        }
     };
 
     const formatTime = (seconds) => {
