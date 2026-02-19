@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, BarChart, User, Swords, Trophy, Target, ShoppingBag, Ticket, Backpack, Store, MessageCircle, BookOpen, Fingerprint, Box, Bell, Lightbulb, Users2, Zap, Microscope, Award, Image, Heart } from 'lucide-react';
+import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, BarChart, User, Swords, Trophy, Target, ShoppingBag, Ticket, Backpack, Store, MessageCircle, BookOpen, Fingerprint, Box, Bell, Lightbulb, Users2, Zap, Microscope, Award, Image, Heart, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getVibeLevel } from '../utils/vibeLevel';
@@ -120,6 +120,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                 { name: '인벤토리 (Inventory)', path: '/inventory', icon: <Backpack size={18} /> },
                 { name: '마켓 (Market)', path: '/market', icon: <Store size={18} /> },
                 { name: '멘토 찾기 (Mentor)', path: '/mentor', icon: <Users2 size={18} /> },
+                { name: '멘토 예약 (Booking)', path: '/mentor-booking', icon: <Calendar size={18} /> },
                 { name: '자기진단 (Diagnosis)', path: '/diagnosis', icon: <Microscope size={18} /> },
                 { name: '주간 챌린지 (Challenge)', path: '/challenge', icon: <Award size={18} /> },
             ]
