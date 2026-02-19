@@ -14,7 +14,7 @@ const StarterPack = () => {
     const navigate = useNavigate();
 
     const handleStepAction = (action) => {
-        switch(action) {
+        switch (action) {
             case 'signup':
                 navigate('/signup');
                 break;
@@ -30,8 +30,7 @@ const StarterPack = () => {
     };
 
     const handleDownloadPDF = () => {
-        // PDF 다운로드 로직 (실제 구현 시 PDF 파일 경로 필요)
-        alert('스타터 팩 가이드 PDF를 준비 중입니다. 곧 다운로드 가능합니다!');
+        navigate('/starter-guide');
     };
 
     const steps = [
