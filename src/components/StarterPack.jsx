@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Download, BookOpen, Users, FileText, CheckCircle } from 'lucide-react';
 
 /**
@@ -10,6 +11,29 @@ import { Download, BookOpen, Users, FileText, CheckCircle } from 'lucide-react';
  * - 링크 모음
  */
 const StarterPack = () => {
+    const navigate = useNavigate();
+
+    const handleStepAction = (action) => {
+        switch(action) {
+            case 'signup':
+                navigate('/signup');
+                break;
+            case 'learn':
+                navigate('/learn');
+                break;
+            case 'demo':
+                navigate('/demo');
+                break;
+            default:
+                break;
+        }
+    };
+
+    const handleDownloadPDF = () => {
+        // PDF 다운로드 로직 (실제 구현 시 PDF 파일 경로 필요)
+        alert('스타터 팩 가이드 PDF를 준비 중입니다. 곧 다운로드 가능합니다!');
+    };
+
     const steps = [
         {
             number: 1,
@@ -17,6 +41,7 @@ const StarterPack = () => {
             description: '바이브 코딩 커뮤니티에 가입하고 프로필을 만드세요',
             icon: '👤',
             action: '지금 가입하기',
+            actionKey: 'signup',
             duration: '5분'
         },
         {
@@ -25,6 +50,7 @@ const StarterPack = () => {
             description: 'ChatGPT, Claude 등의 AI 도구를 준비하세요. (선택사항)',
             icon: '🤖',
             action: '알아보기',
+            actionKey: 'learn',
             duration: '10분'
         },
         {
@@ -33,6 +59,7 @@ const StarterPack = () => {
             description: '간단한 프롬프트로 첫 번째 프로젝트를 시작하세요',
             icon: '✨',
             action: '시작하기',
+            actionKey: 'demo',
             duration: '20분'
         }
     ];
@@ -180,6 +207,7 @@ const StarterPack = () => {
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            onClick={() => handleStepAction(step.actionKey)}
                             style={{
                                 width: '100%',
                                 padding: '12px',
@@ -299,6 +327,7 @@ const StarterPack = () => {
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={handleDownloadPDF}
                     style={{
                         padding: '14px 32px',
                         background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
@@ -352,6 +381,7 @@ const StarterPack = () => {
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={() => handleStepAction('demo')}
                     style={{
                         marginTop: '20px',
                         padding: '12px 28px',
