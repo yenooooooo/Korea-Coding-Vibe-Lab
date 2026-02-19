@@ -121,6 +121,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                 { name: '마켓 (Market)', path: '/market', icon: <Store size={18} /> },
                 { name: '멘토 찾기 (Mentor)', path: '/mentor', icon: <Users2 size={18} /> },
                 { name: '멘토 예약 (Booking)', path: '/mentor-booking', icon: <Calendar size={18} /> },
+                { name: 'AI 스터디 (Study)', path: '/ai-study', icon: <Lightbulb size={18} /> },
                 { name: '자기진단 (Diagnosis)', path: '/diagnosis', icon: <Microscope size={18} /> },
                 { name: '주간 챌린지 (Challenge)', path: '/challenge', icon: <Award size={18} /> },
             ]
