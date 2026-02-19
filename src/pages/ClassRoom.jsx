@@ -96,18 +96,20 @@ const ClassRoom = () => {
 
     const generateAgoraToken = async () => {
         try {
-            // 실제 구현에서는 백엔드에서 토큰을 생성해야 합니다
-            // 임시로 고정 토큰 사용 (테스트용)
-            // 프로덕션에서는 반드시 백엔드 API 호출 필요
+            const { data, error } = await supabase.functions.invoke('agora-token', {
+                body: {
+                    channelName: sessionData.id,
+                    uid: user.id
+                }
+            });
 
-            // TODO: 토큰 생성 API 구현 (Supabase Edge Function 또는 Node.js 서버)
-            // const { data, error } = await supabase.functions.invoke('agora-token', {
-            //     body: { channelName: sessionData.id, uid: user.id }
-            // });
+            if (error) throw error;
 
-            // 현재는 클라이언트 토큰 사용 (개발 환경용)
-            // 프로덕션에서 절대 사용하면 안 됨!
-            setAgoraToken('temp-token-for-testing');
+            if (data?.token) {
+                setAgoraToken(data.token);
+            } else {
+                throw new Error('토큰 생성 실패');
+            }
         } catch (error) {
             console.error('Error generating Agora token:', error);
             addToast('통화 토큰 생성 실패', 'error');
