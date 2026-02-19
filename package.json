@@ -12,6 +12,7 @@
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "@supabase/supabase-js": "^2.95.3",
+    "agora-rtc-sdk-ng": "^4.24.2",
     "framer-motion": "^11.0.8",
     "lucide-react": "^0.344.0",
     "peerjs": "^1.5.5",
