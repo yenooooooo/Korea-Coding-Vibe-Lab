@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
 import {
     User, MapPin, Link as LinkIcon, Github, Globe,
-    Edit2, Save, X, Trophy, Flame, Sparkles, MessageSquare, Lock
+    Edit2, Save, X, Trophy, Flame, Sparkles, MessageSquare, Lock, Gem
 } from 'lucide-react';
 import IdentitySelector from '../components/IdentitySelector';
 import SkillBadge from '../components/SkillBadge';
