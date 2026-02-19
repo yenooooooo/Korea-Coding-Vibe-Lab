@@ -30,6 +30,7 @@ import AIStudyPartner from './pages/AIStudyPartner'
 import Payment from './pages/Payment'
 import PaymentSuccess from './pages/PaymentSuccess'
 import PaymentFail from './pages/PaymentFail'
+import SeasonPassSuccess from './pages/SeasonPassSuccess'
 import ClassRoom from './pages/ClassRoom'
 import AdminMentorPage from './pages/AdminMentorPage'
 import InteractiveDemo from './pages/InteractiveDemo'
@@ -81,6 +82,7 @@ function AppRoutes() {
                 <Route path="/payment" element={<Payment />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-fail" element={<PaymentFail />} />
+                <Route path="/season-pass-success" element={<SeasonPassSuccess />} />
                 <Route path="/classroom" element={<ClassRoom />} />
                 <Route path="/admin-mentors" element={<AdminMentorPage />} />
                 <Route path="/demo" element={<InteractiveDemo />} />

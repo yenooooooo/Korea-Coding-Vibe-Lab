@@ -133,13 +133,58 @@ const TierCard = ({ reward, isUnlocked, isClaimed, isCurrent, onClaim, isPremium
 };
 
 // 프리미엄 구매 모달
-const PremiumPurchaseModal = ({ isOpen, onClose, season, userPoints }) => {
+const PremiumPurchaseModal = ({ isOpen, onClose, season, userPoints, user }) => {
     const [toast, setToast] = useState(null);
+    const [processing, setProcessing] = useState(false);
     const PREMIUM_PRICE = 2000;
 
     const showToast = (msg) => {
         setToast(msg);
         setTimeout(() => setToast(null), 3000);
+    };
+
+    const handlePayment = async () => {
+        if (!user) {
+            showToast('로그인이 필요합니다');
+            return;
+        }
+
+        try {
+            setProcessing(true);
+
+            const clientKey = import.meta.env.VITE_TOSS_CLIENT_KEY;
+            if (!clientKey) {
+                showToast('결제 설정이 완료되지 않았습니다');
+                return;
+            }
+
+            // 고유 주문 번호 생성
+            const orderId = `PREMIUMPASS_${user.id.substring(0, 8)}_${Date.now()}`;
+
+            // Toss Payments SDK 초기화
+            const tossPayments = window.TossPayments(clientKey);
+
+            // 결제 요청
+            await tossPayments.requestPayment('카드', {
+                amount: PREMIUM_PRICE,
+                orderId: orderId,
+                orderName: `시즌 패스 프리미엄 업그레이드 (${season.name})`,
+                customerName: user.user_metadata?.username || 'GUEST',
+                customerEmail: user.email,
+                successUrl: `${window.location.origin}/season-pass-success`,
+                failUrl: `${window.location.origin}/payment-fail`,
+            });
+        } catch (error) {
+            console.error('Payment error:', error);
+            // 에러 메시지에 '취소'나 'USER_CANCEL'이 포함되어 있으면 조용히 무시
+            if (error.message?.includes('취소') || error.code === 'USER_CANCEL') {
+                showToast('결제를 취소했습니다');
+            } else {
+                showToast('결제 처리 중 오류가 발생했습니다');
+            }
+        } finally {
+            setProcessing(false);
+        }
     };
 
     const premiumPerks = [
@@ -455,24 +500,34 @@ const PremiumPurchaseModal = ({ isOpen, onClose, season, userPoints }) => {
 
                                 {/* 구매 버튼 */}
                                 <motion.button
-                                    whileHover={{ scale: 1.03 }}
-                                    whileTap={{ scale: 0.97 }}
-                                    onClick={() => showToast('결제 시스템 준비 중입니다. 곧 오픈됩니다!')}
+                                    whileHover={!processing ? { scale: 1.03 } : {}}
+                                    whileTap={!processing ? { scale: 0.97 } : {}}
+                                    onClick={handlePayment}
+                                    disabled={processing}
                                     style={{
                                         width: '100%', padding: '16px',
                                         borderRadius: '14px', border: 'none',
-                                        background: 'linear-gradient(135deg, #facc15, #f59e0b, #f97316)',
+                                        background: processing ? 'rgba(255, 255, 255, 0.1)' : 'linear-gradient(135deg, #facc15, #f59e0b, #f97316)',
                                         backgroundSize: '200% 100%',
-                                        color: '#000', fontWeight: 'bold', fontSize: '1rem',
-                                        cursor: 'pointer',
+                                        color: processing ? '#cbd5e1' : '#000', fontWeight: 'bold', fontSize: '1rem',
+                                        cursor: processing ? 'not-allowed' : 'pointer',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                                        boxShadow: '0 4px 20px rgba(250, 204, 21, 0.3), 0 0 40px rgba(250, 204, 21, 0.1)',
-                                        animation: 'shimmer 3s ease-in-out infinite',
+                                        boxShadow: processing ? 'none' : '0 4px 20px rgba(250, 204, 21, 0.3), 0 0 40px rgba(250, 204, 21, 0.1)',
+                                        animation: processing ? 'none' : 'shimmer 3s ease-in-out infinite',
                                         letterSpacing: '0.5px',
                                     }}
                                 >
-                                    <Gem size={20} />
-                                    프리미엄 패스 구매하기
+                                    {processing ? (
+                                        <>
+                                            <div style={{ animation: 'spin 1s linear infinite' }}>⏳</div>
+                                            결제 창 준비 중...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Gem size={20} />
+                                            프리미엄 패스 구매하기
+                                        </>
+                                    )}
                                 </motion.button>
 
                                 <p style={{ color: '#475569', fontSize: '0.7rem', margin: '12px 0 0', lineHeight: '1.4' }}>
@@ -519,6 +574,7 @@ const SeasonPass = () => {
     const [xp, setXp] = useState(0);
     const [currentTier, setCurrentTier] = useState(0);
     const [claimedTiers, setClaimedTiers] = useState([]);
+    const [isPremium, setIsPremium] = useState(false);
     const [ranking, setRanking] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
@@ -547,6 +603,7 @@ const SeasonPass = () => {
 
             if (progress) {
                 setClaimedTiers(progress.claimed_tiers || []);
+                setIsPremium(progress.is_premium || false);
                 // XP/tier 동기화 업데이트
                 if (progress.season_xp !== calculatedXP || progress.current_tier !== tier) {
                     await supabase
@@ -563,6 +620,7 @@ const SeasonPass = () => {
                         season_key: season.key,
                         season_xp: calculatedXP,
                         current_tier: tier,
+                        is_premium: false
                     });
             }
         }
@@ -757,77 +815,79 @@ const SeasonPass = () => {
             </motion.div>
 
             {/* 프리미엄 업그레이드 CTA 배너 */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                whileHover={{ scale: 1.01 }}
-                onClick={() => setShowPremiumModal(true)}
-                style={{
-                    background: 'linear-gradient(135deg, rgba(250,204,21,0.06) 0%, rgba(168,85,247,0.08) 50%, rgba(99,102,241,0.06) 100%)',
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: '20px',
-                    padding: '20px 28px',
-                    border: '1px solid rgba(250, 204, 21, 0.15)',
-                    marginBottom: '24px',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    overflow: 'hidden',
-                }}
-            >
-                {/* 배경 반짝임 */}
+            {!isPremium && (
                 <motion.div
-                    animate={{ x: ['-100%', '200%'] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    whileHover={{ scale: 1.01 }}
+                    onClick={() => setShowPremiumModal(true)}
                     style={{
-                        position: 'absolute', top: 0, left: 0,
-                        width: '50%', height: '100%',
-                        background: 'linear-gradient(90deg, transparent, rgba(250,204,21,0.06), transparent)',
-                        pointerEvents: 'none',
+                        background: 'linear-gradient(135deg, rgba(250,204,21,0.06) 0%, rgba(168,85,247,0.08) 50%, rgba(99,102,241,0.06) 100%)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: '20px',
+                        padding: '20px 28px',
+                        border: '1px solid rgba(250, 204, 21, 0.15)',
+                        marginBottom: '24px',
+                        cursor: 'pointer',
+                        position: 'relative',
+                        overflow: 'hidden',
                     }}
-                />
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 1, flexWrap: 'wrap', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        <motion.div
-                            animate={{ rotate: [0, 10, -10, 0] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                            style={{
-                                width: '48px', height: '48px', borderRadius: '14px',
-                                background: 'linear-gradient(135deg, rgba(250,204,21,0.2), rgba(245,158,11,0.2))',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '1.5rem', flexShrink: 0,
-                                boxShadow: '0 0 20px rgba(250,204,21,0.15)',
-                            }}
-                        >
-                            💎
-                        </motion.div>
-                        <div>
-                            <div style={{
-                                fontSize: '1rem', fontWeight: 'bold',
-                                background: 'linear-gradient(135deg, #facc15, #f59e0b)',
-                                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                                marginBottom: '2px',
-                            }}>
-                                프리미엄 패스로 업그레이드
-                            </div>
-                            <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
-                                2배 보상 + 한정 이펙트 + 전용 스킨까지
+                >
+                    {/* 배경 반짝임 */}
+                    <motion.div
+                        animate={{ x: ['-100%', '200%'] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                        style={{
+                            position: 'absolute', top: 0, left: 0,
+                            width: '50%', height: '100%',
+                            background: 'linear-gradient(90deg, transparent, rgba(250,204,21,0.06), transparent)',
+                            pointerEvents: 'none',
+                        }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 1, flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <motion.div
+                                animate={{ rotate: [0, 10, -10, 0] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                style={{
+                                    width: '48px', height: '48px', borderRadius: '14px',
+                                    background: 'linear-gradient(135deg, rgba(250,204,21,0.2), rgba(245,158,11,0.2))',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '1.5rem', flexShrink: 0,
+                                    boxShadow: '0 0 20px rgba(250,204,21,0.15)',
+                                }}
+                            >
+                                💎
+                            </motion.div>
+                            <div>
+                                <div style={{
+                                    fontSize: '1rem', fontWeight: 'bold',
+                                    background: 'linear-gradient(135deg, #facc15, #f59e0b)',
+                                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                                    marginBottom: '2px',
+                                }}>
+                                    프리미엄 패스로 업그레이드
+                                </div>
+                                <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                                    2배 보상 + 한정 이펙트 + 전용 스킨까지
+                                </div>
                             </div>
                         </div>
+                        <div style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            padding: '10px 20px', borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #facc15, #f59e0b)',
+                            color: '#000', fontWeight: 'bold', fontSize: '0.85rem',
+                            boxShadow: '0 4px 16px rgba(250, 204, 21, 0.25)',
+                            flexShrink: 0,
+                        }}>
+                            <Gem size={16} />
+                            자세히 보기
+                        </div>
                     </div>
-                    <div style={{
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        padding: '10px 20px', borderRadius: '12px',
-                        background: 'linear-gradient(135deg, #facc15, #f59e0b)',
-                        color: '#000', fontWeight: 'bold', fontSize: '0.85rem',
-                        boxShadow: '0 4px 16px rgba(250, 204, 21, 0.25)',
-                        flexShrink: 0,
-                    }}>
-                        <Gem size={16} />
-                        자세히 보기
-                    </div>
-                </div>
-            </motion.div>
+                </motion.div>
+            )}
 
             {/* 프리미엄 구매 모달 */}
             <PremiumPurchaseModal
@@ -835,6 +895,7 @@ const SeasonPass = () => {
                 onClose={() => setShowPremiumModal(false)}
                 season={season}
                 userPoints={profile?.total_points}
+                user={user}
             />
 
             {/* 보상 트랙 */}
@@ -893,14 +954,14 @@ const SeasonPass = () => {
                 {/* 프리미엄 트랙 (상단) */}
                 <div style={{ marginBottom: '6px' }}>
                     <div
-                        onClick={() => setShowPremiumModal(true)}
+                        onClick={() => !isPremium && setShowPremiumModal(true)}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '6px',
                             padding: '4px 12px', borderRadius: '8px',
-                            background: 'linear-gradient(135deg, rgba(250,204,21,0.15), rgba(245,158,11,0.15))',
-                            border: '1px solid rgba(250, 204, 21, 0.2)',
+                            background: isPremium ? 'linear-gradient(135deg, rgba(250,204,21,0.2), rgba(245,158,11,0.2))' : 'linear-gradient(135deg, rgba(250,204,21,0.15), rgba(245,158,11,0.15))',
+                            border: isPremium ? '1px solid rgba(250, 204, 21, 0.4)' : '1px solid rgba(250, 204, 21, 0.2)',
                             marginBottom: '10px',
-                            cursor: 'pointer',
+                            cursor: isPremium ? 'default' : 'pointer',
                             transition: 'all 0.2s',
                         }}
                     >
@@ -908,13 +969,23 @@ const SeasonPass = () => {
                         <span style={{ color: '#facc15', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
                             PREMIUM
                         </span>
-                        <span style={{
-                            padding: '1px 6px', borderRadius: '4px',
-                            background: 'rgba(250, 204, 21, 0.2)',
-                            color: '#fbbf24', fontSize: '0.6rem', fontWeight: 'bold',
-                        }}>
-                            COMING SOON
-                        </span>
+                        {!isPremium ? (
+                            <span style={{
+                                padding: '1px 6px', borderRadius: '4px',
+                                background: 'rgba(250, 204, 21, 0.2)',
+                                color: '#fbbf24', fontSize: '0.6rem', fontWeight: 'bold',
+                            }}>
+                                구매하기
+                            </span>
+                        ) : (
+                            <span style={{
+                                padding: '1px 6px', borderRadius: '4px',
+                                background: 'rgba(74, 222, 128, 0.2)',
+                                color: '#4ade80', fontSize: '0.6rem', fontWeight: 'bold',
+                            }}>
+                                이용 중
+                            </span>
+                        )}
                     </div>
                     <div
                         className="season-track-scroll"
@@ -933,11 +1004,11 @@ const SeasonPass = () => {
                                 key={`premium-${reward.tier}`}
                                 reward={reward}
                                 isUnlocked={reward.tier <= currentTier}
-                                isClaimed={false}
-                                isCurrent={false}
-                                onClaim={() => { }}
+                                isClaimed={claimedTiers.includes(`premium-${reward.tier}`)}
+                                isCurrent={reward.tier === currentTier + 1}
+                                onClaim={() => { }} // 아직 구현되지 않음 (미래 확장성)
                                 isPremiumTrack={true}
-                                isPremiumLocked={true}
+                                isPremiumLocked={!isPremium}
                             />
                         ))}
                     </div>
