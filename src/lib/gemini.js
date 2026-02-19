@@ -29,10 +29,9 @@ export const generateQuest = async (topic) => {
 
     // 모델 후보군 (진단 도구에서 확인된 모델들)
     const models = [
-        { name: 'gemini-2.0-flash', version: 'v1beta' },
-        { name: 'gemini-flash-latest', version: 'v1beta' },
-        { name: 'gemini-pro-latest', version: 'v1beta' },
-        { name: 'gemini-2.5-flash', version: 'v1beta' } // 최신 모델
+        { name: 'gemini-2.5-flash', version: 'v1beta' },
+        { name: 'gemini-2.5-flash-lite', version: 'v1beta' },
+        { name: 'gemini-3-flash', version: 'v1beta' }
     ];
 
     let lastError = null;
@@ -116,8 +115,8 @@ export const generateVibeComponent = async (promptText) => {
     `;
 
     const models = [
-        { name: 'gemini-2.0-flash', version: 'v1beta' },
-        { name: 'gemini-1.5-flash', version: 'v1beta' }
+        { name: 'gemini-2.5-flash', version: 'v1beta' },
+        { name: 'gemini-2.5-flash-lite', version: 'v1beta' }
     ];
 
     let lastError = null;

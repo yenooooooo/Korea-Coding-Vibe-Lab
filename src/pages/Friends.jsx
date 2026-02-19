@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { sendNotification } from '../lib/notifications';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Users, Search, UserPlus, Loader, Check, X, Trash2, MessageCircle } from 'lucide-react';
@@ -179,6 +180,16 @@ const Friends = () => {
 
             if (error) throw error;
             addToast('친구 신청을 보냈습니다! 🎉', 'success');
+
+            // 상대방에게 친구 요청 알림
+            const myName = user?.user_metadata?.username || '유저';
+            sendNotification(
+                receiverId,
+                'FRIEND_REQUEST',
+                `👋 ${myName}님이 친구 신청을 보냈습니다!`,
+                '/friends'
+            );
+
             fetchFriendsData();
             handleSearch(); // 검색 결과 새로고침
         } catch (error) {
@@ -196,6 +207,19 @@ const Friends = () => {
 
             if (error) throw error;
             addToast('친구 신청을 수락했습니다! 👋', 'success');
+
+            // 요청자에게 수락 알림
+            const request = receivedRequests.find(r => r.id === requestId);
+            if (request) {
+                const myName = user?.user_metadata?.username || '유저';
+                sendNotification(
+                    request.requester_id,
+                    'JOIN_APPROVED',
+                    `🎉 ${myName}님이 친구 신청을 수락했습니다!`,
+                    '/friends'
+                );
+            }
+
             fetchFriendsData();
         } catch (error) {
             console.error('Error accepting request:', error);

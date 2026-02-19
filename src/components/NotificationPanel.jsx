@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ThumbsUp, UserPlus, CheckCircle, XCircle, CheckCheck, X, MessageSquare, Trophy, Zap, Gift, Star, Users } from 'lucide-react';
+import { ThumbsUp, UserPlus, CheckCircle, XCircle, CheckCheck, X, MessageSquare, Trophy, Zap, Gift, Star, Users, CalendarCheck, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -16,6 +16,8 @@ const NOTIFICATION_ICONS = {
     POINTS_EARNED: { icon: Zap, color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
     BADGE_EARNED: { icon: Gift, color: '#ec4899', bg: 'rgba(236, 72, 153, 0.1)' },
     FRIEND_REQUEST: { icon: Users, color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.1)' },
+    MENTOR_BOOKING: { icon: CalendarCheck, color: '#f97316', bg: 'rgba(249, 115, 22, 0.1)' },
+    PAYMENT_COMPLETE: { icon: CreditCard, color: '#14b8a6', bg: 'rgba(20, 184, 166, 0.1)' },
 };
 
 const timeAgo = (dateStr) => {

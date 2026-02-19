@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { sendNotification } from '../lib/notifications';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, Send, Search, Loader, X, Copy, Trash2, Heart, ChevronLeft } from 'lucide-react';
@@ -174,6 +175,19 @@ const DirectMessages = () => {
 
             if (data && data.length > 0) {
                 setMessages(prev => [...prev, data[0]]);
+            }
+
+            // 상대방에게 새 메시지 알림
+            if (selectedConv) {
+                const otherUserId = getOtherUserId(selectedConv);
+                const myName = user?.user_metadata?.username || '유저';
+                const preview = messageText.trim().length > 30 ? messageText.trim().substring(0, 30) + '...' : messageText.trim();
+                sendNotification(
+                    otherUserId,
+                    'NEW_MESSAGE',
+                    `💬 ${myName}: ${preview}`,
+                    '/messages'
+                );
             }
 
             setMessageText('');

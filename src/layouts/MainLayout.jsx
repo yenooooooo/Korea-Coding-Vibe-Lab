@@ -79,7 +79,9 @@ const MainLayout = () => {
         }).catch(err => console.log('View already recorded or error:', err));
     };
 
-    // 읽지 않은 알림 개수 구독
+    // 읽지 않은 알림 개수 구독 + 실시간 팝업 토스트
+    const [popupNotification, setPopupNotification] = useState(null);
+
     useEffect(() => {
         if (!user) return;
 
@@ -94,7 +96,7 @@ const MainLayout = () => {
 
         fetchUnreadCount();
 
-        // Realtime subscription for unread count
+        // Realtime subscription for unread count + popup
         const channel = supabase
             .channel('unread_notifications_' + user.id)
             .on(
@@ -105,8 +107,11 @@ const MainLayout = () => {
                     table: 'notifications',
                     filter: `user_id=eq.${user.id}`,
                 },
-                () => {
+                (payload) => {
                     setUnreadNotificationCount(prev => prev + 1);
+                    // 실시간 팝업 토스트 표시
+                    setPopupNotification(payload.new);
+                    setTimeout(() => setPopupNotification(null), 5000);
                 }
             )
             .on(
@@ -423,6 +428,77 @@ const MainLayout = () => {
 
             <ScrollToTop />
             <AdminEntryToast />
+
+            {/* 실시간 알림 팝업 토스트 */}
+            <AnimatePresence>
+                {popupNotification && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -30, x: 20 }}
+                        animate={{ opacity: 1, y: 0, x: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                        onClick={() => {
+                            setPopupNotification(null);
+                            setIsNotificationOpen(true);
+                        }}
+                        style={{
+                            position: 'fixed',
+                            top: '24px',
+                            right: '24px',
+                            zIndex: 10001,
+                            background: 'rgba(15, 23, 42, 0.95)',
+                            backdropFilter: 'blur(20px)',
+                            borderRadius: '16px',
+                            padding: '16px 20px',
+                            border: '1px solid rgba(99, 102, 241, 0.3)',
+                            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.15)',
+                            maxWidth: '360px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                        }}
+                    >
+                        <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
+                            background: 'rgba(99, 102, 241, 0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1.2rem',
+                            flexShrink: 0,
+                        }}>
+                            🔔
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{
+                                margin: 0,
+                                fontSize: '0.85rem',
+                                color: '#e2e8f0',
+                                lineHeight: '1.4',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                            }}>
+                                {popupNotification.message}
+                            </p>
+                            <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                                방금 전 · 클릭하여 확인
+                            </span>
+                        </div>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setPopupNotification(null); }}
+                            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
+                        >
+                            ✕
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 };

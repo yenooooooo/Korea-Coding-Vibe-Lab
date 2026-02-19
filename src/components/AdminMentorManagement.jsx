@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
+import { sendNotification } from '../lib/notifications';
 import { Check, X, Eye, Mail, Calendar } from 'lucide-react';
 
 const AdminMentorManagement = () => {
@@ -85,6 +86,15 @@ const AdminMentorManagement = () => {
             if (appError) throw appError;
 
             addToast('멘토 신청이 승인되었습니다', 'success');
+
+            // 신청자에게 승인 알림
+            sendNotification(
+                userId,
+                'JOIN_APPROVED',
+                '🎉 멘토 신청이 승인되었습니다! 이제 멘토 프로필을 설정해보세요.',
+                '/mentor-profile-setup'
+            );
+
             await fetchData();
         } catch (error) {
             console.error('Error approving:', error);
@@ -106,6 +116,15 @@ const AdminMentorManagement = () => {
             if (error) throw error;
 
             addToast('멘토 신청이 거절되었습니다', 'success');
+
+            // 신청자에게 거절 알림
+            sendNotification(
+                selectedApp.user_id,
+                'JOIN_REJECTED',
+                `😔 멘토 신청이 거절되었습니다.${rejectReason ? ` 사유: ${rejectReason}` : ''}`,
+                '/mentor-application'
+            );
+
             setShowRejectModal(false);
             setRejectReason('');
             setSelectedApp(null);

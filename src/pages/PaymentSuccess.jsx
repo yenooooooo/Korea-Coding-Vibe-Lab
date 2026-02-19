@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { sendNotification } from '../lib/notifications';
 import { CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 
 const PaymentSuccess = () => {
@@ -73,6 +74,15 @@ const PaymentSuccess = () => {
             if (updateError) throw updateError;
 
             addToast('결제가 완료되었습니다! 🎉', 'success');
+
+            // 멘토에게 결제 완료 알림
+            const studentName = user?.user_metadata?.username || '학생';
+            sendNotification(
+                sessions.mentor_id,
+                'PAYMENT_COMPLETE',
+                `💰 ${studentName}님이 수업 결제를 완료했습니다! (₩${parseInt(amount).toLocaleString()})`,
+                '/mentor-profile-setup'
+            );
         } catch (error) {
             console.error('Payment success processing error:', error);
             addToast(`처리 중 오류: ${error.message}`, 'error');

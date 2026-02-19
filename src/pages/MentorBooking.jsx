@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { sendNotification } from '../lib/notifications';
 import { Star, MapPin, Clock, Users, X, Calendar, Send } from 'lucide-react';
 
 const MentorBooking = () => {
@@ -86,6 +87,15 @@ const MentorBooking = () => {
             if (fetchError || !createdSession) throw fetchError || new Error('세션 ID를 찾을 수 없습니다');
 
             addToast('수업이 예약되었습니다! 결제 페이지로 이동합니다.', 'success');
+
+            // 멘토에게 알림 전송
+            const studentName = user?.user_metadata?.username || '학생';
+            sendNotification(
+                selectedMentor.user_id,
+                'MENTOR_BOOKING',
+                `📅 ${studentName}님이 수업을 예약했습니다! (${bookingForm.scheduled_date} ${bookingForm.scheduled_time})`,
+                '/mentor-profile-setup'
+            );
 
             // 결제 페이지로 이동하며 세션 ID 전달
             setTimeout(() => {
