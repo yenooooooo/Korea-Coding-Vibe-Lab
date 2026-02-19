@@ -28,7 +28,7 @@ const MentorFinding = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Supabase에서 멘토 데이터 조회
+    // Supabase에서 멘토 데이터 조회 및 Realtime 구독
     useEffect(() => {
         const fetchMentors = async () => {
             try {
@@ -53,6 +53,27 @@ const MentorFinding = () => {
         };
 
         fetchMentors();
+
+        // Realtime 구독: mentors 테이블 변경 감지
+        const mentorsChannel = supabase
+            .channel('mentors-realtime')
+            .on('postgres_changes', {
+                event: '*', // INSERT, UPDATE, DELETE 모두 감지
+                schema: 'public',
+                table: 'mentors'
+            }, (payload) => {
+                console.log('멘토 데이터 변경:', payload);
+                // 새 멘토 추가 시 자동 새로고침
+                if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                    fetchMentors();
+                }
+            })
+            .subscribe();
+
+        // 정리: 컴포넌트 언마운트 시 구독 해제
+        return () => {
+            mentorsChannel.unsubscribe();
+        };
     }, []);
 
     // 매칭 요청 제출
@@ -60,21 +81,30 @@ const MentorFinding = () => {
         if (matchingForm.introduction.trim() && matchingForm.goals.trim()) {
             try {
                 if (user && selectedMentor) {
-                    await supabase.from('mentor_requests').insert({
+                    const { error: insertError } = await supabase.from('mentor_requests').insert({
                         user_id: user.id,
                         mentor_id: selectedMentor.id,
                         introduction: matchingForm.introduction,
                         goals: matchingForm.goals,
                         preferred_time: matchingForm.preferredTime
                     });
+
+                    if (insertError) {
+                        throw insertError;
+                    }
+
+                    // 성공 메시지
+                    console.log('✅ 매칭 요청이 데이터베이스에 저장되었습니다');
+                    alert(`✅ ${selectedMentor.name} 멘토에게 매칭 요청이 발송되었습니다!\n\n📧 곧 연락을 받으실 거예요.\n⏱️ 평균 응답 시간: ${selectedMentor.responseTime || '24시간 이내'}`);
+                } else {
+                    alert('로그인 후 요청해주세요.');
                 }
-                alert(`${selectedMentor.name} 멘토에게 매칭 요청이 발송되었습니다!\n곧 연락을 받으실 거예요.`);
                 setMatchingForm({ introduction: '', goals: '', preferredTime: '' });
                 setMatchingMode(false);
                 setSelectedMentor(null);
             } catch (err) {
                 console.error('매칭 요청 실패:', err);
-                alert('요청 발송에 실패했습니다. 다시 시도해주세요.');
+                alert(`❌ 요청 발송에 실패했습니다.\n\n오류: ${err.message}\n\n잠시 후 다시 시도해주세요.`);
             }
         }
     };
