@@ -19,8 +19,11 @@ const Admin = () => {
     const [ecoStats, setEcoStats] = useState(null)
     const [broadcastRefresh, setBroadcastRefresh] = useState(0)
 
+    // Check admin authorization before rendering anything else
+    const isAdmin = user && user.email === 'yaya01234@naver.com';
+
     useEffect(() => {
-        if (user && user.email !== 'yaya01234@naver.com') {
+        if (!isAdmin) {
             alert("관리자 권한이 없습니다.")
             navigate('/')
             return
@@ -88,6 +91,10 @@ const Admin = () => {
         })
         setRecentVisits(logs || [])
         setLoading(false)
+    }
+
+    if (!isAdmin) {
+        return null; // Return null to prevent FOUC while useEffect handles redirect
     }
 
     return (
