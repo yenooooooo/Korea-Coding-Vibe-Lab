@@ -26,6 +26,9 @@ import MentorFinding from './pages/MentorFinding'
 import MentorApplicationForm from './pages/MentorApplicationForm'
 import MentorProfileSetup from './pages/MentorProfileSetup'
 import MentorBooking from './pages/MentorBooking'
+import Payment from './pages/Payment'
+import PaymentSuccess from './pages/PaymentSuccess'
+import PaymentFail from './pages/PaymentFail'
 import InteractiveDemo from './pages/InteractiveDemo'
 import CanIDoItPage from './pages/CanIDoItPage'
 import WeeklyChallengePageWrapper from './pages/WeeklyChallengePageWrapper'
@@ -66,6 +69,9 @@ function AppRoutes() {
                 <Route path="/mentor-application" element={<MentorApplicationForm />} />
                 <Route path="/mentor-profile-setup" element={<MentorProfileSetup />} />
                 <Route path="/mentor-booking" element={<MentorBooking />} />
+                <Route path="/payment" element={<Payment />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-fail" element={<PaymentFail />} />
                 <Route path="/demo" element={<InteractiveDemo />} />
                 <Route path="/diagnosis" element={<CanIDoItPage />} />
                 <Route path="/challenge" element={<WeeklyChallengePageWrapper />} />
