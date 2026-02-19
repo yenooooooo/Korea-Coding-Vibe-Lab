@@ -42,7 +42,7 @@ const AIStudyPartner = () => {
 
         try {
             const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
             const result = await model.generateContent(
                 `당신은 친근하고 도움이 되는 코딩 멘토입니다. 학생의 질문에 명확하고 이해하기 쉽게 답변하세요.\n\n학생 질문: ${input}`
