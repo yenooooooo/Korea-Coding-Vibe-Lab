@@ -243,11 +243,18 @@ const MentorFinding = () => {
     // 필터링 및 정렬
     const filteredAndSorted = useMemo(() => {
         let result = mentors.filter(mentor => {
-            const matchesSearch = mentor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                 mentor.title.toLowerCase().includes(searchQuery.toLowerCase());
+            const name = mentor.name || '';
+            const title = mentor.title || '';
+            const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                title.toLowerCase().includes(searchQuery.toLowerCase());
+
+            const mentorExpertise = mentor.expertise || [];
             const matchesExpertise = expertiseFilter === 'all' ||
-                                    mentor.expertise.some(e => e.toLowerCase().includes(expertiseFilter));
-            const matchesLevel = levelFilter === 'all' || mentor.level === levelFilter;
+                mentorExpertise.some(e => e.toLowerCase().includes(expertiseFilter));
+
+            const mentorLevel = mentor.level || '';
+            const matchesLevel = levelFilter === 'all' || mentorLevel === levelFilter;
+
             return matchesSearch && matchesExpertise && matchesLevel;
         });
 
@@ -492,195 +499,195 @@ const MentorFinding = () => {
 
             {/* 멘토 카드 그리드 */}
             {!loading && (
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                    gap: '24px',
-                    marginBottom: '60px'
-                }}
-            >
-                {filteredAndSorted.map((mentor, idx) => (
-                    <motion.div
-                        key={mentor.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: idx * 0.05 }}
-                        whileHover={{ y: -8 }}
-                        onClick={() => setSelectedMentor(mentor)}
-                        style={{
-                            background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7))',
-                            border: '1px solid rgba(99, 102, 241, 0.2)',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            cursor: 'pointer',
-                            backdropFilter: 'blur(20px)',
-                            transition: 'all 0.3s'
-                        }}
-                    >
-                        {/* 아바타 */}
-                        <div style={{
-                            fontSize: '3rem',
-                            textAlign: 'center',
-                            marginBottom: '16px'
-                        }}>
-                            {mentor.avatar}
-                        </div>
-
-                        {/* 정보 */}
-                        <h3 style={{
-                            color: 'white',
-                            fontSize: '1.2rem',
-                            fontWeight: '700',
-                            margin: '0 0 4px 0',
-                            textAlign: 'center'
-                        }}>
-                            {mentor.name}
-                        </h3>
-
-                        <p style={{
-                            color: '#818cf8',
-                            fontSize: '0.9rem',
-                            margin: '0 0 16px 0',
-                            textAlign: 'center',
-                            fontWeight: '600'
-                        }}>
-                            {mentor.title}
-                        </p>
-
-                        <p style={{
-                            color: '#cbd5e1',
-                            fontSize: '0.85rem',
-                            margin: '0 0 16px 0',
-                            textAlign: 'center',
-                            lineHeight: '1.5',
-                            minHeight: '40px'
-                        }}>
-                            {mentor.introduction}
-                        </p>
-
-                        {/* 전문분야 */}
-                        <div style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '6px',
-                            marginBottom: '16px',
-                            justifyContent: 'center'
-                        }}>
-                            {mentor.expertise.slice(0, 3).map((exp, i) => (
-                                <span
-                                    key={i}
-                                    style={{
-                                        background: 'rgba(168, 85, 247, 0.2)',
-                                        border: '1px solid rgba(168, 85, 247, 0.3)',
-                                        padding: '4px 10px',
-                                        borderRadius: '6px',
-                                        fontSize: '0.75rem',
-                                        fontWeight: '600',
-                                        color: '#d8b4fe'
-                                    }}
-                                >
-                                    {exp}
-                                </span>
-                            ))}
-                        </div>
-
-                        {/* 통계 */}
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            gap: '12px',
-                            marginBottom: '16px',
-                            paddingBottom: '16px',
-                            borderBottom: '1px solid rgba(255,255,255,0.05)'
-                        }}>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '4px',
-                                    color: '#fbbf24',
-                                    fontWeight: '700',
-                                    marginBottom: '4px'
-                                }}>
-                                    <Star size={14} fill="currentColor" />
-                                    {mentor.rating}
-                                </div>
-                                <p style={{
-                                    color: '#94a3b8',
-                                    fontSize: '0.75rem',
-                                    margin: 0
-                                }}>
-                                    평점
-                                </p>
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '4px',
-                                    color: '#22c55e',
-                                    fontWeight: '700',
-                                    marginBottom: '4px'
-                                }}>
-                                    <Users size={14} />
-                                    {mentor.students}
-                                </div>
-                                <p style={{
-                                    color: '#94a3b8',
-                                    fontSize: '0.75rem',
-                                    margin: 0
-                                }}>
-                                    학생 수
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* 응답 시간 */}
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px',
-                            color: '#94a3b8',
-                            fontSize: '0.85rem',
-                            marginBottom: '16px'
-                        }}>
-                            <Clock size={14} />
-                            응답 {mentor.responseTime}
-                        </div>
-
-                        {/* 버튼 */}
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                        gap: '24px',
+                        marginBottom: '60px'
+                    }}
+                >
+                    {filteredAndSorted.map((mentor, idx) => (
+                        <motion.div
+                            key={mentor.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: idx * 0.05 }}
+                            whileHover={{ y: -8 }}
+                            onClick={() => setSelectedMentor(mentor)}
                             style={{
-                                width: '100%',
-                                padding: '10px',
-                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                                border: 'none',
-                                borderRadius: '10px',
-                                color: 'white',
+                                background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7))',
+                                border: '1px solid rgba(99, 102, 241, 0.2)',
+                                borderRadius: '16px',
+                                padding: '24px',
                                 cursor: 'pointer',
-                                fontWeight: '600',
+                                backdropFilter: 'blur(20px)',
+                                transition: 'all 0.3s'
+                            }}
+                        >
+                            {/* 아바타 */}
+                            <div style={{
+                                fontSize: '3rem',
+                                textAlign: 'center',
+                                marginBottom: '16px'
+                            }}>
+                                {mentor.avatar}
+                            </div>
+
+                            {/* 정보 */}
+                            <h3 style={{
+                                color: 'white',
+                                fontSize: '1.2rem',
+                                fontWeight: '700',
+                                margin: '0 0 4px 0',
+                                textAlign: 'center'
+                            }}>
+                                {mentor.name}
+                            </h3>
+
+                            <p style={{
+                                color: '#818cf8',
                                 fontSize: '0.9rem',
+                                margin: '0 0 16px 0',
+                                textAlign: 'center',
+                                fontWeight: '600'
+                            }}>
+                                {mentor.title}
+                            </p>
+
+                            <p style={{
+                                color: '#cbd5e1',
+                                fontSize: '0.85rem',
+                                margin: '0 0 16px 0',
+                                textAlign: 'center',
+                                lineHeight: '1.5',
+                                minHeight: '40px'
+                            }}>
+                                {mentor.introduction}
+                            </p>
+
+                            {/* 전문분야 */}
+                            <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '6px',
+                                marginBottom: '16px',
+                                justifyContent: 'center'
+                            }}>
+                                {mentor.expertise?.slice(0, 3).map((exp, i) => (
+                                    <span
+                                        key={i}
+                                        style={{
+                                            background: 'rgba(168, 85, 247, 0.2)',
+                                            border: '1px solid rgba(168, 85, 247, 0.3)',
+                                            padding: '4px 10px',
+                                            borderRadius: '6px',
+                                            fontSize: '0.75rem',
+                                            fontWeight: '600',
+                                            color: '#d8b4fe'
+                                        }}
+                                    >
+                                        {exp}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {/* 통계 */}
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: '1fr 1fr',
+                                gap: '12px',
+                                marginBottom: '16px',
+                                paddingBottom: '16px',
+                                borderBottom: '1px solid rgba(255,255,255,0.05)'
+                            }}>
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '4px',
+                                        color: '#fbbf24',
+                                        fontWeight: '700',
+                                        marginBottom: '4px'
+                                    }}>
+                                        <Star size={14} fill="currentColor" />
+                                        {mentor.rating}
+                                    </div>
+                                    <p style={{
+                                        color: '#94a3b8',
+                                        fontSize: '0.75rem',
+                                        margin: 0
+                                    }}>
+                                        평점
+                                    </p>
+                                </div>
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '4px',
+                                        color: '#22c55e',
+                                        fontWeight: '700',
+                                        marginBottom: '4px'
+                                    }}>
+                                        <Users size={14} />
+                                        {mentor.students}
+                                    </div>
+                                    <p style={{
+                                        color: '#94a3b8',
+                                        fontSize: '0.75rem',
+                                        margin: 0
+                                    }}>
+                                        학생 수
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* 응답 시간 */}
+                            <div style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '6px'
-                            }}
-                        >
-                            <MessageCircle size={16} />
-                            자세히 보기
-                        </motion.button>
-                    </motion.div>
-                ))}
-            </motion.div>
+                                gap: '6px',
+                                color: '#94a3b8',
+                                fontSize: '0.85rem',
+                                marginBottom: '16px'
+                            }}>
+                                <Clock size={14} />
+                                응답 {mentor.responseTime}
+                            </div>
+
+                            {/* 버튼 */}
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontWeight: '600',
+                                    fontSize: '0.9rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px'
+                                }}
+                            >
+                                <MessageCircle size={16} />
+                                자세히 보기
+                            </motion.button>
+                        </motion.div>
+                    ))}
+                </motion.div>
             )}
 
             {filteredAndSorted.length === 0 && !loading && (
@@ -831,7 +838,7 @@ const MentorFinding = () => {
                                 }}>
                                     학생 후기
                                 </h4>
-                                {selectedMentor.reviews.map((review, idx) => (
+                                {selectedMentor.reviews?.map((review, idx) => (
                                     <div
                                         key={idx}
                                         style={{
