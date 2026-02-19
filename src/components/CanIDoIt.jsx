@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, RotateCcw, Zap, Heart, Brain, Target } from 'lucide-react';
 
 /**
@@ -10,6 +11,7 @@ import { ArrowRight, RotateCcw, Zap, Heart, Brain, Target } from 'lucide-react';
  * - 성공 확률 게이지
  */
 const CanIDoIt = () => {
+    const navigate = useNavigate();
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [scores, setScores] = useState({});
     const [isComplete, setIsComplete] = useState(false);
@@ -535,6 +537,7 @@ const CanIDoIt = () => {
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
+                                onClick={() => navigate('/demo')}
                                 style={{
                                     flex: 1,
                                     padding: '14px',
