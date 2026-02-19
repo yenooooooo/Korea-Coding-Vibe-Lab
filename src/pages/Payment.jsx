@@ -64,22 +64,6 @@ const Payment = () => {
         setProcessing(true);
 
         try {
-            // 토스페이먼츠 결제 위젯 로드
-            const scriptSrc = 'https://js.tosspayments.com/v1/payment';
-            let script = document.querySelector(`script[src="${scriptSrc}"]`);
-
-            if (!script) {
-                script = document.createElement('script');
-                script.src = scriptSrc;
-                script.async = true;
-                document.head.appendChild(script);
-
-                await new Promise((resolve, reject) => {
-                    script.onload = resolve;
-                    script.onerror = reject;
-                });
-            }
-
             if (!window.tossPayments) {
                 throw new Error('토스페이먼츠 SDK를 불러올 수 없습니다');
             }
@@ -89,26 +73,19 @@ const Payment = () => {
                 throw new Error('토스페이먼츠 클라이언트 키가 설정되지 않았습니다');
             }
 
-            const tossPayments = window.tossPayments(clientKey);
             const amount = calculateAmount();
+            const tossPayments = window.tossPayments(clientKey);
 
-            // 결제 위젯 렌더링
-            await tossPayments.payment({
+            // 결제 진행
+            await tossPayments.requestPayment({
                 method: 'CARD',
                 amount: amount,
                 orderId: orderId,
                 orderName: `${sessionData.mentors.name} 멘토링 수업 (${sessionData.duration_minutes}분)`,
                 customerEmail: user.email,
                 customerName: user.user_metadata?.username || user.email,
-                // eslint-disable-next-line no-undef
                 successUrl: `${window.location.origin}/payment-success`,
-                // eslint-disable-next-line no-undef
-                failUrl: `${window.location.origin}/payment-fail`,
-                cardCompany: 'SHINHAN',
-                taxFreeAmount: 0
-            }).catch(err => {
-                console.error('Payment error:', err);
-                throw err;
+                failUrl: `${window.location.origin}/payment-fail`
             });
 
         } catch (error) {
