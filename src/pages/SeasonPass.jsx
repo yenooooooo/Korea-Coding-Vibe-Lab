@@ -574,6 +574,7 @@ const SeasonPass = () => {
     const [xp, setXp] = useState(0);
     const [currentTier, setCurrentTier] = useState(0);
     const [claimedTiers, setClaimedTiers] = useState([]);
+    const [premiumClaimedTiers, setPremiumClaimedTiers] = useState([]);
     const [isPremium, setIsPremium] = useState(false);
     const [ranking, setRanking] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -603,6 +604,7 @@ const SeasonPass = () => {
 
             if (progress) {
                 setClaimedTiers(progress.claimed_tiers || []);
+                setPremiumClaimedTiers(progress.premium_claimed_tiers || []);
                 setIsPremium(progress.is_premium || false);
                 // XP/tier 동기화 업데이트
                 if (progress.season_xp !== calculatedXP || progress.current_tier !== tier) {
@@ -620,7 +622,9 @@ const SeasonPass = () => {
                         season_key: season.key,
                         season_xp: calculatedXP,
                         current_tier: tier,
-                        is_premium: false
+                        is_premium: false,
+                        claimed_tiers: [],
+                        premium_claimed_tiers: []
                     });
             }
         }
@@ -637,17 +641,33 @@ const SeasonPass = () => {
         setLoading(false);
     };
 
-    const handleClaim = async (tier) => {
-        if (!user || claimedTiers.includes(tier) || tier > currentTier) return;
+    const handleClaim = async (tier, isPremiumReward = false) => {
+        if (!user || tier > currentTier) return;
 
-        const newClaimed = [...claimedTiers, tier];
-        setClaimedTiers(newClaimed);
+        let updateData = {};
 
-        await supabase
+        if (isPremiumReward) {
+            if (!isPremium || premiumClaimedTiers.includes(tier)) return;
+            const newPremiumClaimed = [...premiumClaimedTiers, tier];
+            setPremiumClaimedTiers(newPremiumClaimed);
+            updateData = { premium_claimed_tiers: newPremiumClaimed };
+        } else {
+            if (claimedTiers.includes(tier)) return;
+            const newClaimed = [...claimedTiers, tier];
+            setClaimedTiers(newClaimed);
+            updateData = { claimed_tiers: newClaimed };
+        }
+
+        const { error } = await supabase
             .from('user_season_progress')
-            .update({ claimed_tiers: newClaimed })
+            .update(updateData)
             .eq('user_id', user.id)
             .eq('season_key', season.key);
+
+        if (error) {
+            console.error("보상 수령 오류:", error);
+            // 에러 발생 시 UI 롤백 해주는 로직이 있으면 좋지만 일단 로깅
+        }
     };
 
     const scrollTrack = (direction) => {
@@ -1004,9 +1024,9 @@ const SeasonPass = () => {
                                 key={`premium-${reward.tier}`}
                                 reward={reward}
                                 isUnlocked={reward.tier <= currentTier}
-                                isClaimed={claimedTiers.includes(`premium-${reward.tier}`)}
+                                isClaimed={premiumClaimedTiers.includes(reward.tier)}
                                 isCurrent={reward.tier === currentTier + 1}
-                                onClaim={() => { }} // 아직 구현되지 않음 (미래 확장성)
+                                onClaim={(t) => handleClaim(t, true)}
                                 isPremiumTrack={true}
                                 isPremiumLocked={!isPremium}
                             />

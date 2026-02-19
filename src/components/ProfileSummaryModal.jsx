@@ -13,6 +13,7 @@ const ProfileSummaryModal = ({ userId, isOpen, onClose }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [equippedDetails, setEquippedDetails] = useState({});
+    const [isPremium, setIsPremium] = useState(false);
 
     useEffect(() => {
         if (!isOpen || !userId) {
@@ -36,6 +37,21 @@ const ProfileSummaryModal = ({ userId, isOpen, onClose }) => {
                 setProfile(data.profile);
                 setUserBadges(data.badges || []);
                 setEquippedDetails(data.equipped_details || {});
+
+                // Fetch season pass status
+                const { data: seasonData } = await supabase
+                    .from('user_season_progress')
+                    .select('is_premium')
+                    .eq('user_id', userId)
+                    .order('updated_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (seasonData) {
+                    setIsPremium(seasonData.is_premium);
+                } else {
+                    setIsPremium(false);
+                }
 
             } catch (error) {
                 console.error('Error fetching profile summary:', error);
@@ -279,6 +295,14 @@ const ProfileSummaryModal = ({ userId, isOpen, onClose }) => {
                                                     alignSelf: 'center',
                                                     boxShadow: '0 2px 4px rgba(168, 85, 247, 0.3)'
                                                 }}>운영자</span>}
+                                                {isPremium && (
+                                                    <span style={{
+                                                        fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px',
+                                                        background: 'linear-gradient(135deg, #facc15, #f59e0b)', color: 'black', fontWeight: 'bold',
+                                                        alignSelf: 'center',
+                                                        boxShadow: '0 2px 4px rgba(250, 204, 21, 0.3)'
+                                                    }}>PREMIUM ✨</span>
+                                                )}
                                             </div>
                                             <p style={{
                                                 fontSize: '11px',

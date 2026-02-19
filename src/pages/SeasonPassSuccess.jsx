@@ -40,13 +40,15 @@ const SeasonPassSuccess = () => {
 
                 if (updateError) throw updateError;
 
-                // 2. 프리미엄 패스 구매 알림 발송
-                await sendNotification(
-                    user.id,
-                    'SYSTEM',
-                    `💎 프리미엄 패스 구매가 완료되었습니다! 이제 모든 프리미엄 보상을 받을 수 있습니다.`,
-                    '/season-pass'
-                );
+                // 2. 프리미엄 패스 구매 알림 발송 (UUID 인지 확인 후 전송 시도)
+                if (user.id && user.id.length === 36) {
+                    await sendNotification(
+                        user.id,
+                        'SYSTEM',
+                        `💎 프리미엄 패스 구매가 완료되었습니다! 이제 모든 프리미엄 보상을 받을 수 있습니다.`,
+                        '/season-pass'
+                    ).catch(err => console.warn('알림 전송 실패 무시:', err));
+                }
 
                 setStatus('프리미엄 패스 업그레이드 완료!');
                 setIsSuccess(true);

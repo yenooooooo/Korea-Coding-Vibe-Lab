@@ -25,6 +25,7 @@ const Profile = () => {
     const [allBadges, setAllBadges] = useState([]);  // 전체 뱃지 목록
     const [attendanceHistory, setAttendanceHistory] = useState([]);
     const [newBadge, setNewBadge] = useState(null);  // 새 뱃지 획득 알림용
+    const [seasonProgress, setSeasonProgress] = useState(null); // 시즌 패스 진척도
 
     // Edit Mode State
     const [isEditing, setIsEditing] = useState(false);
@@ -91,12 +92,14 @@ const Profile = () => {
                 { data: profileData, error: profileError },
                 { data: badgeData, error: badgeError },
                 { data: allBadgeData, error: allBadgeError },
-                { data: attendanceData, error: attendanceError }
+                { data: attendanceData, error: attendanceError },
+                { data: seasonData, error: seasonError }
             ] = await Promise.all([
                 supabase.from('profiles').select('*').eq('id', user.id).single(),
                 supabase.from('user_badges').select('badge_id, awarded_at, badges(*)').eq('user_id', user.id),
                 supabase.from('badges').select('*'),
-                supabase.from('attendance').select('check_in_date, vibe_status').eq('user_id', user.id).gte('check_in_date', new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString())
+                supabase.from('attendance').select('check_in_date, vibe_status').eq('user_id', user.id).gte('check_in_date', new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString()),
+                supabase.from('user_season_progress').select('is_premium, current_tier').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(1).maybeSingle()
             ]);
 
             if (profileError) throw profileError;
@@ -108,6 +111,7 @@ const Profile = () => {
             setBadges(badgeData || []);
             setAllBadges(allBadgeData || []);
             setAttendanceHistory(attendanceData || []);
+            setSeasonProgress(seasonData);
 
             // 새 뱃지 획득 감지 (localStorage 비교)
             const earnedIds = (badgeData || []).map(b => b.badge_id);
@@ -296,6 +300,17 @@ const Profile = () => {
                                     <SkillBadge skill={profile?.main_skill} type="main" size="md" />
                                     <SkillBadge skill={profile?.learning_skill} type="learning" size="md" />
                                 </div>
+                                {seasonProgress?.is_premium && (
+                                    <div style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                        padding: '4px 10px', borderRadius: '12px',
+                                        background: 'linear-gradient(135deg, rgba(250,204,21,0.2), rgba(245,158,11,0.2))',
+                                        border: '1px solid rgba(250, 204, 21, 0.4)',
+                                        color: '#facc15', fontSize: '0.75rem', fontWeight: 'bold', marginLeft: '6px'
+                                    }}>
+                                        <Gem size={12} /> PREMIUM PASS
+                                    </div>
+                                )}
                             </h1>
                             <p style={{ color: '#cbd5e1', marginTop: '4px', maxWidth: '500px' }}>
                                 {profile?.bio || "아직 자기소개가 없습니다. 멋진 바이브를 보여주세요!"}
