@@ -4,6 +4,7 @@ import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getVibeLevel } from '../utils/vibeLevel';
+import LivePresenceIsland from './LivePresenceIsland';
 
 const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 0, onNotificationClick = () => { } }) => {
     // CSS 애니메이션 스타일 추가
@@ -315,6 +316,9 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                         </motion.div>
                     )}
                 </button>
+
+                {/* 실시간 접속자 표시 */}
+                <LivePresenceIsland collapsed={true} />
 
                 {/* 미니 프로필 (아바타 + 레벨 배지) */}
                 <div style={{ marginTop: 'auto', position: 'relative' }}>
