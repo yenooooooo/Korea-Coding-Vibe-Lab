@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -8,6 +9,7 @@ import { Star, MapPin, Clock, Users, X, Calendar, Send } from 'lucide-react';
 const MentorBooking = () => {
     const { user } = useAuth();
     const { addToast } = useToast();
+    const navigate = useNavigate();
     const [mentors, setMentors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedMentor, setSelectedMentor] = useState(null);
@@ -70,17 +72,25 @@ const MentorBooking = () => {
 
             if (sessionError) throw sessionError;
 
-            addToast('수업이 예약되었습니다! 결제 페이지로 이동합니다.', 'success');
-            setShowBookingModal(false);
-            setBookingForm({
-                scheduled_date: '',
-                scheduled_time: '14:00',
-                duration_minutes: 60,
-                message: ''
-            });
+            // 생성된 세션의 ID 조회
+            const { data: createdSession, error: fetchError } = await supabase
+                .from('mentor_sessions')
+                .select('id')
+                .eq('student_id', user.id)
+                .eq('mentor_id', selectedMentor.id)
+                .eq('scheduled_at', scheduledAt.toISOString())
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
 
-            // 실제로는 결제 페이지로 이동해야 함
-            // navigate('/payment', { state: { sessionId, mentorId: selectedMentor.id } });
+            if (fetchError || !createdSession) throw fetchError || new Error('세션 ID를 찾을 수 없습니다');
+
+            addToast('수업이 예약되었습니다! 결제 페이지로 이동합니다.', 'success');
+
+            // 결제 페이지로 이동하며 세션 ID 전달
+            setTimeout(() => {
+                navigate('/payment', { state: { sessionId: createdSession.id } });
+            }, 500);
         } catch (error) {
             console.error('Error creating session:', error);
             addToast('예약 중 오류가 발생했습니다', 'error');
