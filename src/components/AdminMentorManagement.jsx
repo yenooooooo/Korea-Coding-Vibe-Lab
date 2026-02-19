@@ -24,7 +24,7 @@ const AdminMentorManagement = () => {
             // 대기 중인 신청
             const { data: pendingData, error: pendingError } = await supabase
                 .from('mentor_applications')
-                .select('*, auth.users(email, user_metadata)')
+                .select('*')
                 .eq('status', 'pending')
                 .order('created_at', { ascending: false });
 
