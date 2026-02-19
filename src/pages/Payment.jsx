@@ -72,18 +72,19 @@ const Payment = () => {
 
             const amount = calculateAmount();
 
-            // 토스페이먼츠 Checkout으로 리다이렉트
-            const checkoutUrl = new URL('https://payment.tosspayments.com/checkout/pay');
-            checkoutUrl.searchParams.append('clientKey', clientKey);
-            checkoutUrl.searchParams.append('amount', amount.toString());
-            checkoutUrl.searchParams.append('orderId', orderId);
-            checkoutUrl.searchParams.append('orderName', `${sessionData.mentors.name} 멘토링 수업 (${sessionData.duration_minutes}분)`);
-            checkoutUrl.searchParams.append('customerEmail', user.email);
-            checkoutUrl.searchParams.append('customerName', user.user_metadata?.username || user.email);
-            checkoutUrl.searchParams.append('successUrl', `${window.location.origin}/payment-success`);
-            checkoutUrl.searchParams.append('failUrl', `${window.location.origin}/payment-fail`);
+            // Toss Payments SDK 초기화
+            const tossPayments = window.TossPayments(clientKey);
 
-            window.location.href = checkoutUrl.toString();
+            // 결제 요청
+            await tossPayments.requestPayment('카드', {
+                amount: amount,
+                orderId: orderId,
+                orderName: `${sessionData.mentors.name} 멘토링 수업 (${sessionData.duration_minutes}분)`,
+                customerName: user.user_metadata?.username || 'GUEST',
+                customerEmail: user.email,
+                successUrl: `${window.location.origin}/payment-success`,
+                failUrl: `${window.location.origin}/payment-fail`,
+            });
 
         } catch (error) {
             console.error('Payment error:', error);

@@ -65,7 +65,13 @@ const AdminMentorManagement = () => {
                     name: profile?.nickname || 'Mentor',
                     expertise: app.expertise,
                     hourly_rate: 0, // 기본값, 나중에 수정
-                    availability: 'available'
+                    availability: 'available',
+                    title: `${app.expertise?.[0] || '개발'} 멘토`,
+                    introduction: app.introduction,
+                    experience: `${app.experience_years}년`,
+                    level: 'intermediate',
+                    avatar: '🧑‍🏫',
+                    response_time: '1시간 이내'
                 });
 
             if (mentorError) throw mentorError;
