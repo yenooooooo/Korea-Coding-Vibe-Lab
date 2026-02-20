@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Github, BookOpen, Flame, Trophy } from 'lucide-react';
+import { X, Github, BookOpen, Flame, Trophy, User } from 'lucide-react';
 import SkillBadge from './SkillBadge';
 import { supabase } from '../lib/supabase';
 import { getVibeLevel } from '../utils/vibeLevel';
