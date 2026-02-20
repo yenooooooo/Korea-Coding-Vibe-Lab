@@ -50,6 +50,7 @@ import DailyChallenge from './pages/DailyChallenge'
 import CodeSnippets from './pages/CodeSnippets'
 import ThemeCustomizer from './pages/ThemeCustomizer'
 import StudyTimer from './pages/StudyTimer'
+import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { FocusCamProvider } from './context/FocusCamContext'
@@ -62,55 +63,61 @@ function AppRoutes() {
     return (
         <Routes>
             <Route element={<MainLayout />}>
+                {/* 🟢 누구나 접근 가능 */}
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/attendance" element={<Attendance />} />
-                <Route path="/community" element={<Community />} />
-                <Route path="/study" element={<StudyGroup />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/shop" element={<VibeShop />} />
-                <Route path="/quest" element={<Quest />} />
-                <Route path="/inventory" element={<Inventory />} />
-                <Route path="/battle" element={<BattleArena />} />
-                <Route path="/battle/:roomId" element={<BattleArena />} />
-                <Route path="/exchange" element={<Exchange />} />
-                <Route path="/sandbox" element={<VibeSandbox />} />
-                <Route path="/market" element={<VibeMarket />} />
-                <Route path="/vibe-dna" element={<VibeDNA />} />
-                <Route path="/season-pass" element={<SeasonPass />} />
-                <Route path="/ranking" element={<Ranking />} />
-                <Route path="/friends" element={<Friends />} />
-                <Route path="/messages" element={<DirectMessages />} />
-                <Route path="/mentor" element={<MentorFinding />} />
-                <Route path="/mentor-application" element={<MentorApplicationForm />} />
-                <Route path="/mentor-profile-setup" element={<MentorProfileSetup />} />
-                <Route path="/mentor-booking" element={<MentorBooking />} />
-                <Route path="/ai-study" element={<AIStudyPartner />} />
-                <Route path="/payment" element={<Payment />} />
-                <Route path="/payment-success" element={<PaymentSuccess />} />
-                <Route path="/payment-fail" element={<PaymentFail />} />
-                <Route path="/season-pass-success" element={<SeasonPassSuccess />} />
-                <Route path="/classroom" element={<ClassRoom />} />
-                <Route path="/admin-mentors" element={<AdminMentorPage />} />
                 <Route path="/demo" element={<InteractiveDemo />} />
+                <Route path="/starter-guide" element={<StarterGuide />} />
                 <Route path="/diagnosis" element={<CanIDoItPage />} />
-                <Route path="/challenge" element={<WeeklyChallengePageWrapper />} />
+
+                {/* 🟡 읽기 허용 (참여는 각 페이지에서 LoginPrompt로 제한) */}
+                <Route path="/community" element={<Community />} />
+                <Route path="/ranking" element={<Ranking />} />
                 <Route path="/gallery" element={<GalleryPage />} />
                 <Route path="/learn" element={<LearnPage />} />
                 <Route path="/moments" element={<CommunityPage />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/starter-guide" element={<StarterGuide />} />
-                <Route path="/prompt-library" element={<PromptLibrary />} />
-                <Route path="/settings" element={<Settings />} />
                 <Route path="/showcase" element={<ProjectShowcase />} />
-                <Route path="/point-history" element={<PointHistory />} />
-                <Route path="/bookmarks" element={<Bookmarks />} />
-                <Route path="/daily-challenge" element={<DailyChallenge />} />
-                <Route path="/code-snippets" element={<CodeSnippets />} />
-                <Route path="/theme" element={<ThemeCustomizer />} />
-                <Route path="/study-timer" element={<StudyTimer />} />
+                <Route path="/prompt-library" element={<PromptLibrary />} />
+
+                {/* 🔴 로그인 필수 */}
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
+                <Route path="/shop" element={<ProtectedRoute><VibeShop /></ProtectedRoute>} />
+                <Route path="/quest" element={<ProtectedRoute><Quest /></ProtectedRoute>} />
+                <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+                <Route path="/battle" element={<ProtectedRoute><BattleArena /></ProtectedRoute>} />
+                <Route path="/battle/:roomId" element={<ProtectedRoute><BattleArena /></ProtectedRoute>} />
+                <Route path="/exchange" element={<ProtectedRoute><Exchange /></ProtectedRoute>} />
+                <Route path="/sandbox" element={<ProtectedRoute><VibeSandbox /></ProtectedRoute>} />
+                <Route path="/market" element={<ProtectedRoute><VibeMarket /></ProtectedRoute>} />
+                <Route path="/vibe-dna" element={<ProtectedRoute><VibeDNA /></ProtectedRoute>} />
+                <Route path="/season-pass" element={<ProtectedRoute><SeasonPass /></ProtectedRoute>} />
+                <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+                <Route path="/messages" element={<ProtectedRoute><DirectMessages /></ProtectedRoute>} />
+                <Route path="/mentor" element={<ProtectedRoute><MentorFinding /></ProtectedRoute>} />
+                <Route path="/mentor-application" element={<ProtectedRoute><MentorApplicationForm /></ProtectedRoute>} />
+                <Route path="/mentor-profile-setup" element={<ProtectedRoute><MentorProfileSetup /></ProtectedRoute>} />
+                <Route path="/mentor-booking" element={<ProtectedRoute><MentorBooking /></ProtectedRoute>} />
+                <Route path="/ai-study" element={<ProtectedRoute><AIStudyPartner /></ProtectedRoute>} />
+                <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+                <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+                <Route path="/payment-fail" element={<ProtectedRoute><PaymentFail /></ProtectedRoute>} />
+                <Route path="/season-pass-success" element={<ProtectedRoute><SeasonPassSuccess /></ProtectedRoute>} />
+                <Route path="/classroom" element={<ProtectedRoute><ClassRoom /></ProtectedRoute>} />
+                <Route path="/admin-mentors" element={<ProtectedRoute><AdminMentorPage /></ProtectedRoute>} />
+                <Route path="/study" element={<ProtectedRoute><StudyGroup /></ProtectedRoute>} />
+                <Route path="/challenge" element={<ProtectedRoute><WeeklyChallengePageWrapper /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/point-history" element={<ProtectedRoute><PointHistory /></ProtectedRoute>} />
+                <Route path="/bookmarks" element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
+                <Route path="/daily-challenge" element={<ProtectedRoute><DailyChallenge /></ProtectedRoute>} />
+                <Route path="/code-snippets" element={<ProtectedRoute><CodeSnippets /></ProtectedRoute>} />
+                <Route path="/theme" element={<ProtectedRoute><ThemeCustomizer /></ProtectedRoute>} />
+                <Route path="/study-timer" element={<ProtectedRoute><StudyTimer /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+
                 <Route path="*" element={<NotFound />} />
             </Route>
         </Routes>
