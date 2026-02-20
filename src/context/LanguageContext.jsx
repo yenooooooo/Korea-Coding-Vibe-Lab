@@ -88,8 +88,10 @@ const translations = {
         'sidebar.ranking': '랭킹 (Ranking)',
         'sidebar.gallery': '라이브 갤러리 (Gallery)',
         'sidebar.learn.page': '따라하기 (Learn)',
+        'sidebar.learn.guide': '따라하기 (Learn)',
         'sidebar.demo': '데모 (Demo)',
         'sidebar.prompts': '프롬프트 라이브러리 (Prompts)',
+        'sidebar.prompt.library': '프롬프트 라이브러리 (Prompts)',
         'sidebar.timer': '스터디 타이머 (Timer)',
         'sidebar.level': '비기너',
 
@@ -183,8 +185,10 @@ const translations = {
         'sidebar.ranking': 'Ranking',
         'sidebar.gallery': 'Live Gallery',
         'sidebar.learn.page': 'Learn',
+        'sidebar.learn.guide': 'Learn Guide',
         'sidebar.demo': 'Demo',
         'sidebar.prompts': 'Prompt Library',
+        'sidebar.prompt.library': 'Prompt Library',
         'sidebar.timer': 'Study Timer',
         'sidebar.level': 'Beginner',
 
