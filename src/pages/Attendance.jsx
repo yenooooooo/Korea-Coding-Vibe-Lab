@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProfileSummaryModal from '../components/ProfileSummaryModal';
+import StreakRecovery from '../components/StreakRecovery';
 import { getVibeLevel, getStreakCombo, getStreakMilestone } from '../utils/vibeLevel';
 import { getTodayKST, formatDateKST } from '../utils/dateUtils';
 import { isAdmin } from '../utils/admin';
@@ -442,6 +443,12 @@ const Attendance = () => {
                             </motion.div>
                         );
                     })()}
+
+                    {/* Streak Recovery Component */}
+                    <StreakRecovery currentStreak={streak} onSuccess={() => {
+                        addToast('스트릭이 복구되었습니다!', 'success');
+                        loadData();
+                    }} />
 
                     {!checkedIn ? (
                         <>

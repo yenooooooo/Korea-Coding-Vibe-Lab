@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, BarChart, User, Swords, Trophy, Target, ShoppingBag, Ticket, Backpack, Store, MessageCircle, BookOpen, Fingerprint, Box, Bell, Lightbulb, Users2, Zap, Microscope, Award, Image, Heart, Calendar, Settings, Search, Coins } from 'lucide-react';
+import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, BarChart, User, Swords, Trophy, Target, ShoppingBag, Ticket, Backpack, Store, MessageCircle, BookOpen, Fingerprint, Box, Bell, Lightbulb, Users2, Zap, Microscope, Award, Image, Heart, Calendar, Settings, Search, Coins, Bookmark, Code, Palette, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getVibeLevel } from '../utils/vibeLevel';
@@ -125,6 +125,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                 { name: 'AI 스터디 (Study)', path: '/ai-study', icon: <Lightbulb size={18} /> },
                 { name: '자기진단 (Diagnosis)', path: '/diagnosis', icon: <Microscope size={18} /> },
                 { name: '주간 챌린지 (Challenge)', path: '/challenge', icon: <Award size={18} /> },
+                { name: '일일 챌린지 (Daily)', path: '/daily-challenge', icon: <Target size={18} /> },
                 { name: '포인트 내역 (Points)', path: '/point-history', icon: <Coins size={18} /> },
             ]
         },
@@ -142,6 +143,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                 { name: '출석 (Attendance)', path: '/attendance', icon: <CalendarCheck size={18} /> },
                 { name: '스터디 (Study)', path: '/study', icon: <BookOpen size={18} /> },
                 { name: '따뜻한 순간 (Moments)', path: '/moments', icon: <Heart size={18} /> },
+                { name: '북마크 (Bookmarks)', path: '/bookmarks', icon: <Bookmark size={18} /> },
                 { name: '설정 (Settings)', path: '/settings', icon: <Settings size={18} /> },
             ]
         },
@@ -155,6 +157,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
             items: [
                 { name: '바이브 DNA', path: '/vibe-dna', icon: <Fingerprint size={18} /> },
                 { name: '샌드박스 (Sandbox)', path: '/sandbox', icon: <Box size={18} /> },
+                { name: '테마 설정 (Theme)', path: '/theme', icon: <Palette size={18} /> },
             ]
         },
         {
@@ -169,6 +172,8 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                 { name: '데모 (Demo)', path: '/demo', icon: <Zap size={18} /> },
                 { name: '스타터 가이드 (Guide)', path: '/starter-guide', icon: <BookOpen size={18} /> },
                 { name: '프롬프트 라이브러리 (Prompts)', path: '/prompt-library', icon: <BookOpen size={18} /> },
+                { name: '코드 스니펫 (Snippets)', path: '/code-snippets', icon: <Code size={18} /> },
+                { name: '스터디 타이머 (Timer)', path: '/study-timer', icon: <Clock size={18} /> },
             ]
         },
         {

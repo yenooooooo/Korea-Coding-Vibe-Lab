@@ -45,6 +45,11 @@ import Settings from './pages/Settings'
 import NotFound from './pages/NotFound'
 import ProjectShowcase from './pages/ProjectShowcase'
 import PointHistory from './pages/PointHistory'
+import Bookmarks from './pages/Bookmarks'
+import DailyChallenge from './pages/DailyChallenge'
+import CodeSnippets from './pages/CodeSnippets'
+import ThemeCustomizer from './pages/ThemeCustomizer'
+import StudyTimer from './pages/StudyTimer'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { FocusCamProvider } from './context/FocusCamContext'
@@ -100,6 +105,11 @@ function AppRoutes() {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/showcase" element={<ProjectShowcase />} />
                 <Route path="/point-history" element={<PointHistory />} />
+                <Route path="/bookmarks" element={<Bookmarks />} />
+                <Route path="/daily-challenge" element={<DailyChallenge />} />
+                <Route path="/code-snippets" element={<CodeSnippets />} />
+                <Route path="/theme" element={<ThemeCustomizer />} />
+                <Route path="/study-timer" element={<StudyTimer />} />
                 <Route path="*" element={<NotFound />} />
             </Route>
         </Routes>
