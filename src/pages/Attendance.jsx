@@ -64,23 +64,7 @@ const StatsCard = memo(({ icon, label, value, color, gradient }) => (
 
 StatsCard.displayName = 'StatsCard';
 
-// Vibes 데이터 (JSX 없이 순수 데이터만)
-const VIBES_DATA = [
-    { id: 'BURNING', iconName: 'Flame', label: 'Burning 🔥', color: '#f97316', desc: '오늘 하루 불태운다!' },
-    { id: 'CHILL', iconName: 'Coffee', label: 'Chill ☕', color: '#2dd4bf', desc: '여유롭게 코딩 한잔' },
-    { id: 'DEBUGGING', iconName: 'Bug', label: 'Debugging 🐛', color: '#ef4444', desc: '버그와의 사투' },
-    { id: 'LEARNING', iconName: 'Brain', label: 'Learning 📚', color: '#a855f7', desc: '새로운 지식 흡수' }
-];
-
-// Icon 매핑
-const ICON_MAP = {
-    Flame,
-    Coffee,
-    Bug,
-    Brain
-};
-
-// Quotes 상수
+// Quotes 상수만 외부에 (순수 데이터)
 const quotes = [
     "문제 해결이 먼저입니다. 코드는 그 다음입니다. - John Johnson",
     "경험이란 모두가 자신의 실수에 붙이는 이름입니다. - Oscar Wilde",
@@ -91,11 +75,13 @@ const quotes = [
 ];
 
 const Attendance = () => {
-    // vibes를 컴포넌트 내부에서 생성 (JSX 포함)
-    const vibes = useMemo(() => VIBES_DATA.map(v => ({
-        ...v,
-        icon: ICON_MAP[v.iconName]
-    })), []);
+    // vibes 정의 (컴포넌트 내부에서만 정의 - 초기화 문제 완전 해결)
+    const vibes = useMemo(() => [
+        { id: 'BURNING', icon: Flame, label: 'Burning 🔥', color: '#f97316', desc: '오늘 하루 불태운다!' },
+        { id: 'CHILL', icon: Coffee, label: 'Chill ☕', color: '#2dd4bf', desc: '여유롭게 코딩 한잔' },
+        { id: 'DEBUGGING', icon: Bug, label: 'Debugging 🐛', color: '#ef4444', desc: '버그와의 사투' },
+        { id: 'LEARNING', icon: Brain, label: 'Learning 📚', color: '#a855f7', desc: '새로운 지식 흡수' }
+    ], []);
     const { user, profile: authProfile } = useAuth();
     const { addToast } = useToast();
     const [loading, setLoading] = useState(true);
