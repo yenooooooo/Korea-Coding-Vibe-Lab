@@ -7,6 +7,7 @@ import { getVibeLevel } from '../utils/vibeLevel';
 import SkillBadge from './SkillBadge';
 import PostDetailModal from './PostDetailModal';
 import ScrollToTop from './ScrollToTop';
+import LoginPrompt from './LoginPrompt';
 import { isAdmin, ADMIN_NAME_STYLE, ADMIN_BADGE_STYLE, ADMIN_AVATAR_GLOW } from '../utils/admin';
 import { VibeName, fetchBatchEquippedDetails } from '../utils/vibeItems.jsx';
 
@@ -17,6 +18,7 @@ const VibeSquare = ({ defaultCategory = 'all' }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showWriteModal, setShowWriteModal] = useState(false);
     const [selectedPost, setSelectedPost] = useState(null);
+    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const { user } = useAuth();
     const containerRef = useRef(null);
     const [equippedDetails, setEquippedDetails] = useState({});
@@ -180,6 +182,10 @@ const VibeSquare = ({ defaultCategory = 'all' }) => {
 
                     <button
                         onClick={() => {
+                            if (!user) {
+                                setShowLoginPrompt(true);
+                                return;
+                            }
                             setEditingPost(null);
                             setShowWriteModal(true);
                         }}
@@ -256,6 +262,15 @@ const VibeSquare = ({ defaultCategory = 'all' }) => {
                     />
                 )}
             </AnimatePresence>
+
+            {/* 로그인 프롬프트 */}
+            {showLoginPrompt && (
+                <LoginPrompt
+                    isModal
+                    message="글을 쓰려면 로그인이 필요합니다"
+                    onClose={() => setShowLoginPrompt(false)}
+                />
+            )}
         </div>
     );
 };
