@@ -64,6 +64,24 @@ const StatsCard = memo(({ icon, label, value, color, gradient }) => (
 
 StatsCard.displayName = 'StatsCard';
 
+// Vibes 상수 (컴포넌트 외부로 이동)
+const vibes = [
+    { id: 'BURNING', icon: <Flame color="#f97316" />, label: 'Burning 🔥', color: '#f97316', desc: '오늘 하루 불태운다!' },
+    { id: 'CHILL', icon: <Coffee color="#2dd4bf" />, label: 'Chill ☕', color: '#2dd4bf', desc: '여유롭게 코딩 한잔' },
+    { id: 'DEBUGGING', icon: <Bug color="#ef4444" />, label: 'Debugging 🐛', color: '#ef4444', desc: '버그와의 사투' },
+    { id: 'LEARNING', icon: <Brain color="#a855f7" />, label: 'Learning 📚', color: '#a855f7', desc: '새로운 지식 흡수' }
+];
+
+// Quotes 상수
+const quotes = [
+    "문제 해결이 먼저입니다. 코드는 그 다음입니다. - John Johnson",
+    "경험이란 모두가 자신의 실수에 붙이는 이름입니다. - Oscar Wilde",
+    "자바와 자바스크립트는 햄과 햄스터의 관계와 같습니다. - Chris Heilmann",
+    "지식은 힘이다. - Francis Bacon",
+    "단순함은 효율성의 핵심이다. - Austin Freeman",
+    "코드는 거짓말하지 않지만, 주석은 가끔 거짓말한다. - Ron Jeffries"
+];
+
 const Attendance = () => {
     const { user, profile: authProfile } = useAuth();
     const { addToast } = useToast();
@@ -81,22 +99,6 @@ const Attendance = () => {
     const [showParticles, setShowParticles] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [showAllHistory, setShowAllHistory] = useState(false);
-
-    const vibes = [
-        { id: 'BURNING', icon: <Flame color="#f97316" />, label: 'Burning 🔥', color: '#f97316', desc: '오늘 하루 불태운다!' },
-        { id: 'CHILL', icon: <Coffee color="#2dd4bf" />, label: 'Chill ☕', color: '#2dd4bf', desc: '여유롭게 코딩 한잔' },
-        { id: 'DEBUGGING', icon: <Bug color="#ef4444" />, label: 'Debugging 🐛', color: '#ef4444', desc: '버그와의 사투' },
-        { id: 'LEARNING', icon: <Brain color="#a855f7" />, label: 'Learning 📚', color: '#a855f7', desc: '새로운 지식 흡수' }
-    ];
-
-    const quotes = [
-        "문제 해결이 먼저입니다. 코드는 그 다음입니다. - John Johnson",
-        "경험이란 모두가 자신의 실수에 붙이는 이름입니다. - Oscar Wilde",
-        "자바와 자바스크립트는 햄과 햄스터의 관계와 같습니다. - Chris Heilmann",
-        "지식은 힘이다. - Francis Bacon",
-        "단순함은 효율성의 핵심이다. - Austin Freeman",
-        "코드는 거짓말하지 않지만, 주석은 가끔 거짓말한다. - Ron Jeffries"
-    ];
 
     useEffect(() => {
         if (user) {
