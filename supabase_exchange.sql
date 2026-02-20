@@ -60,14 +60,18 @@ ALTER TABLE user_wallets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE market_transactions ENABLE ROW LEVEL SECURITY;
 
 -- coins, coin_history: 누구나 읽기 가능
+DROP POLICY IF EXISTS "coins_select_all" ON coins;
 CREATE POLICY "coins_select_all" ON coins FOR SELECT USING (true);
+DROP POLICY IF EXISTS "coin_history_select_all" ON coin_history;
 CREATE POLICY "coin_history_select_all" ON coin_history FOR SELECT USING (true);
 
 -- user_wallets: 본인만 조회
+DROP POLICY IF EXISTS "user_wallets_select_own" ON user_wallets;
 CREATE POLICY "user_wallets_select_own" ON user_wallets 
   FOR SELECT USING (auth.uid() = user_id);
 
 -- market_transactions: 본인만 조회
+DROP POLICY IF EXISTS "market_transactions_select_own" ON market_transactions;
 CREATE POLICY "market_transactions_select_own" ON market_transactions 
   FOR SELECT USING (auth.uid() = user_id);
 
@@ -107,14 +111,14 @@ BEGIN
   v_total_cost := v_coin_price * p_amount;
 
   -- 사용자 포인트 확인
-  SELECT total_points INTO v_details FROM profiles WHERE id = auth.uid();
-  IF v_details.total_points < v_total_cost THEN
+  SELECT points INTO v_details FROM profiles WHERE id = auth.uid();
+  IF v_details.points < v_total_cost THEN
     RETURN json_build_object('success', false, 'error', 'Not enough points');
   END IF;
 
   -- 포인트 차감
   UPDATE profiles 
-  SET total_points = total_points - v_total_cost 
+  SET points = COALESCE(points, 0) - v_total_cost 
   WHERE id = auth.uid();
 
   -- 지갑 업데이트 (평단가 계산)
@@ -175,7 +179,8 @@ BEGIN
 
   -- 포인트 지급
   UPDATE profiles 
-  SET total_points = total_points + v_total_value 
+  SET total_points = COALESCE(total_points, 0) + v_total_value,
+      points = COALESCE(points, 0) + v_total_value 
   WHERE id = auth.uid();
 
   -- 거래 기록

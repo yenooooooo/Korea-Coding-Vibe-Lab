@@ -44,14 +44,17 @@ ALTER TABLE quests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_quests ENABLE ROW LEVEL SECURITY;
 
 -- quests: 모든 사용자 읽기 가능
+DROP POLICY IF EXISTS "quests_select_all" ON quests;
 CREATE POLICY "quests_select_all" ON quests
   FOR SELECT USING (true);
 
 -- user_quests: 본인 데이터만 조회
+DROP POLICY IF EXISTS "user_quests_select_own" ON user_quests;
 CREATE POLICY "user_quests_select_own" ON user_quests
   FOR SELECT USING (auth.uid() = user_id);
 
 -- user_quests: 본인 데이터만 수정 (보상 수령 등)
+DROP POLICY IF EXISTS "user_quests_update_own" ON user_quests;
 CREATE POLICY "user_quests_update_own" ON user_quests
   FOR UPDATE USING (auth.uid() = user_id);
 
@@ -253,7 +256,7 @@ BEGIN
 
   -- 포인트 지급
   total_reward := q.reward_points;
-  UPDATE profiles SET total_points = COALESCE(total_points, 0) + total_reward WHERE id = auth.uid();
+  UPDATE profiles SET total_points = COALESCE(total_points, 0) + total_reward, points = COALESCE(points, 0) + total_reward WHERE id = auth.uid();
 
   -- 올클리어 체크: 같은 기간, 같은 타입 퀘스트가 모두 완료+수령됐는지
   IF q.quest_type = 'daily' THEN
@@ -268,7 +271,7 @@ BEGIN
 
     IF daily_all_done THEN
       bonus := 20;
-      UPDATE profiles SET total_points = COALESCE(total_points, 0) + bonus WHERE id = auth.uid();
+      UPDATE profiles SET total_points = COALESCE(total_points, 0) + bonus, points = COALESCE(points, 0) + bonus WHERE id = auth.uid();
     END IF;
   ELSIF q.quest_type = 'weekly' THEN
     SELECT NOT EXISTS (
@@ -282,7 +285,7 @@ BEGIN
 
     IF weekly_all_done THEN
       bonus := 100;
-      UPDATE profiles SET total_points = COALESCE(total_points, 0) + bonus WHERE id = auth.uid();
+      UPDATE profiles SET total_points = COALESCE(total_points, 0) + bonus, points = COALESCE(points, 0) + bonus WHERE id = auth.uid();
     END IF;
   ELSIF q.quest_type = 'season' THEN
     SELECT NOT EXISTS (
@@ -296,7 +299,7 @@ BEGIN
 
     IF season_all_done THEN
       bonus := 300;
-      UPDATE profiles SET total_points = COALESCE(total_points, 0) + bonus WHERE id = auth.uid();
+      UPDATE profiles SET total_points = COALESCE(total_points, 0) + bonus, points = COALESCE(points, 0) + bonus WHERE id = auth.uid();
     END IF;
   END IF;
 
@@ -431,4 +434,11 @@ CREATE TRIGGER trg_quest_forest_post
 -- ============================================
 -- Realtime 활성화
 -- ============================================
-ALTER PUBLICATION supabase_realtime ADD TABLE user_quests;
+DO $$
+BEGIN
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE user_quests;
+  EXCEPTION WHEN duplicate_object THEN
+    NULL;
+  END;
+END $$;

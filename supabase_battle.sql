@@ -68,37 +68,46 @@ ALTER TABLE battle_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE battle_votes ENABLE ROW LEVEL SECURITY;
 
 -- battle_problems: 모든 사용자 읽기 가능
+DROP POLICY IF EXISTS "battle_problems_select_all" ON battle_problems;
 CREATE POLICY "battle_problems_select_all" ON battle_problems
   FOR SELECT USING (true);
 
 -- battle_rooms: 모든 사용자 읽기 가능 (로비/관전)
+DROP POLICY IF EXISTS "battle_rooms_select_all" ON battle_rooms;
 CREATE POLICY "battle_rooms_select_all" ON battle_rooms
   FOR SELECT USING (true);
 
 -- battle_rooms: 호스트만 생성
+DROP POLICY IF EXISTS "battle_rooms_insert_host" ON battle_rooms;
 CREATE POLICY "battle_rooms_insert_host" ON battle_rooms
   FOR INSERT WITH CHECK (auth.uid() = host_id);
 
 -- battle_rooms: 참가자만 수정
+DROP POLICY IF EXISTS "battle_rooms_update_participant" ON battle_rooms;
 CREATE POLICY "battle_rooms_update_participant" ON battle_rooms
   FOR UPDATE USING (auth.uid() = host_id OR auth.uid() = guest_id);
 
 -- battle_submissions: 모든 사용자 읽기 가능 (관전/리뷰)
+DROP POLICY IF EXISTS "battle_submissions_select_all" ON battle_submissions;
 CREATE POLICY "battle_submissions_select_all" ON battle_submissions
   FOR SELECT USING (true);
 
 -- battle_submissions: 본인만 INSERT/UPDATE
+DROP POLICY IF EXISTS "battle_submissions_insert_own" ON battle_submissions;
 CREATE POLICY "battle_submissions_insert_own" ON battle_submissions
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "battle_submissions_update_own" ON battle_submissions;
 CREATE POLICY "battle_submissions_update_own" ON battle_submissions
   FOR UPDATE USING (auth.uid() = user_id);
 
 -- battle_votes: 모든 사용자 읽기 가능
+DROP POLICY IF EXISTS "battle_votes_select_all" ON battle_votes;
 CREATE POLICY "battle_votes_select_all" ON battle_votes
   FOR SELECT USING (true);
 
 -- battle_votes: 본인만 투표
+DROP POLICY IF EXISTS "battle_votes_insert_own" ON battle_votes;
 CREATE POLICY "battle_votes_insert_own" ON battle_votes
   FOR INSERT WITH CHECK (auth.uid() = voter_id);
 
@@ -317,7 +326,7 @@ BEGIN
   VALUES (p_room_id, auth.uid(), p_voted_for);
 
   -- 투표 참여 보상 2P
-  UPDATE profiles SET total_points = COALESCE(total_points, 0) + 2 WHERE id = auth.uid();
+  UPDATE profiles SET total_points = COALESCE(total_points, 0) + 2, points = COALESCE(points, 0) + 2 WHERE id = auth.uid();
 
   RETURN json_build_object('success', true);
 END;
@@ -394,24 +403,24 @@ BEGIN
   -- === 포인트 정산 ===
 
   -- 참가 보상 +10P (양쪽)
-  UPDATE profiles SET total_points = COALESCE(total_points, 0) + 10 WHERE id = room.host_id;
-  UPDATE profiles SET total_points = COALESCE(total_points, 0) + 10 WHERE id = room.guest_id;
+  UPDATE profiles SET total_points = COALESCE(total_points, 0) + 10, points = COALESCE(points, 0) + 10 WHERE id = room.host_id;
+  UPDATE profiles SET total_points = COALESCE(total_points, 0) + 10, points = COALESCE(points, 0) + 10 WHERE id = room.guest_id;
 
   -- 승리 보너스 +30P
   IF winner IS NOT NULL THEN
-    UPDATE profiles SET total_points = COALESCE(total_points, 0) + 30 WHERE id = winner;
+    UPDATE profiles SET total_points = COALESCE(total_points, 0) + 30, points = COALESCE(points, 0) + 30 WHERE id = winner;
   END IF;
 
   -- 스피드 보너스 +10P (먼저 제출한 사람)
   IF first_submitter IS NOT NULL THEN
-    UPDATE profiles SET total_points = COALESCE(total_points, 0) + 10 WHERE id = first_submitter;
+    UPDATE profiles SET total_points = COALESCE(total_points, 0) + 10, points = COALESCE(points, 0) + 10 WHERE id = first_submitter;
   END IF;
 
   -- 만장일치 보너스 +20P (모든 표를 받은 승자, 2표 이상)
   IF winner IS NOT NULL AND total_votes >= 2 THEN
     IF (winner = room.host_id AND host_votes = total_votes)
     OR (winner = room.guest_id AND guest_votes = total_votes) THEN
-      UPDATE profiles SET total_points = COALESCE(total_points, 0) + 20 WHERE id = winner;
+      UPDATE profiles SET total_points = COALESCE(total_points, 0) + 20, points = COALESCE(points, 0) + 20 WHERE id = winner;
     END IF;
   END IF;
 

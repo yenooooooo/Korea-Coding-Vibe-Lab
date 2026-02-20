@@ -2,9 +2,9 @@
 -- Vibe Asset Market: Creator Economy 시스템
 -- ============================================
 
--- 기존 테이블 삭제 (필요 시 주석 해제하여 사용하거나, 깔끔한 재설정을 위해 포함)
-DROP TABLE IF EXISTS market_purchases;
-DROP TABLE IF EXISTS market_assets;
+-- 기존 테이블 삭제 (주석 처리: 재실행 시 데이터 유지)
+-- DROP TABLE IF EXISTS market_purchases;
+-- DROP TABLE IF EXISTS market_assets;
 
 -- 1. market_assets: 판매 중인 에셋 테이블
 CREATE TABLE IF NOT EXISTS market_assets (
@@ -35,14 +35,17 @@ ALTER TABLE market_assets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE market_purchases ENABLE ROW LEVEL SECURITY;
 
 -- 에셋 조회: 누구나 가능
+DROP POLICY IF EXISTS "market_assets_select_policy" ON market_assets;
 CREATE POLICY "market_assets_select_policy" ON market_assets
 FOR SELECT USING (true);
 
 -- 에셋 등록: 인증된 사용자만 가능
+DROP POLICY IF EXISTS "market_assets_insert_policy" ON market_assets;
 CREATE POLICY "market_assets_insert_policy" ON market_assets
 FOR INSERT WITH CHECK (auth.uid() = creator_id);
 
 -- 구매 내역 조회: 본인 것만 가능
+DROP POLICY IF EXISTS "market_purchases_select_policy" ON market_purchases;
 CREATE POLICY "market_purchases_select_policy" ON market_purchases
 FOR SELECT USING (auth.uid() = user_id);
 
@@ -76,17 +79,17 @@ BEGIN
   END IF;
 
   -- 4. 구매자 포인트 확인
-  SELECT total_points INTO v_buyer_points FROM profiles WHERE id = auth.uid();
+  SELECT points INTO v_buyer_points FROM profiles WHERE id = auth.uid();
   
   IF v_buyer_points < v_asset_price THEN
     RETURN json_build_object('success', false, 'message', '포인트가 부족합니다.');
   END IF;
 
   -- 5. 포인트 차감 (구매자)
-  UPDATE profiles SET total_points = total_points - v_asset_price WHERE id = auth.uid();
+  UPDATE profiles SET points = COALESCE(points, 0) - v_asset_price WHERE id = auth.uid();
 
   -- 6. 포인트 지급 (판매자)
-  UPDATE profiles SET total_points = total_points + v_asset_price WHERE id = v_creator_id;
+  UPDATE profiles SET total_points = COALESCE(total_points, 0) + v_asset_price, points = COALESCE(points, 0) + v_asset_price WHERE id = v_creator_id;
 
   -- 7. 구매 내역 기록
   INSERT INTO market_purchases (user_id, asset_id, price_paid)
