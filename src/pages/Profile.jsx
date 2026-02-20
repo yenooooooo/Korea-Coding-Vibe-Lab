@@ -87,7 +87,7 @@ const Profile = () => {
                 supabase.from('profiles').select('*').eq('id', user.id).single(),
                 supabase.from('user_badges').select('badge_id, awarded_at, badges(*)').eq('user_id', user.id),
                 supabase.from('badges').select('*'),
-                supabase.from('attendance').select('check_in_date, vibe_status').eq('user_id', user.id).gte('check_in_date', new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString()),
+                supabase.from('attendance').select('check_in_date, vibe_status').eq('user_id', user.id).gte('check_in_date', new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString()),
                 supabase.from('user_season_progress').select('is_premium, current_tier').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(1).maybeSingle()
             ]);
 
@@ -209,18 +209,35 @@ const Profile = () => {
         }
     };
 
-    const heatmapData = React.useMemo(() => {
-        const yearDays = [];
-        const today = new Date();
-        const startDate = new Date();
-        startDate.setFullYear(today.getFullYear() - 1);
+    // 월별 바이브 통계 계산
+    const monthlyStats = React.useMemo(() => {
+        const stats = {};
 
-        for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
-            const dateStr = d.toISOString().split('T')[0];
-            const record = attendanceHistory.find(r => r.check_in_date === dateStr);
-            yearDays.push({ date: dateStr, record });
-        }
-        return yearDays;
+        attendanceHistory.forEach(record => {
+            const date = new Date(record.check_in_date);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+            if (!stats[monthKey]) {
+                stats[monthKey] = {
+                    year: date.getFullYear(),
+                    month: date.getMonth() + 1,
+                    BURNING: 0,
+                    CHILL: 0,
+                    DEBUGGING: 0,
+                    LEARNING: 0,
+                    total: 0
+                };
+            }
+
+            stats[monthKey][record.vibe_status] = (stats[monthKey][record.vibe_status] || 0) + 1;
+            stats[monthKey].total += 1;
+        });
+
+        // 최근 6개월 데이터를 배열로 변환하고 정렬
+        return Object.entries(stats)
+            .map(([key, value]) => ({ monthKey: key, ...value }))
+            .sort((a, b) => b.monthKey.localeCompare(a.monthKey))
+            .slice(0, 6);
     }, [attendanceHistory]);
 
     if (loading) return <div style={{ color: 'white', textAlign: 'center', marginTop: '50px' }}>Loading Profile...</div>;
@@ -578,90 +595,115 @@ const Profile = () => {
                 <div style={{ background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.4))', borderRadius: '24px', padding: '30px', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'absolute', top: '-40%', right: '-10%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
 
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '20px', color: '#fff', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '1.4rem' }}>📅</span>
-                        마이 바이브 로그 (1년)
-                    </h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', position: 'relative', zIndex: 1 }}>
+                        <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ fontSize: '1.4rem' }}>📅</span>
+                            마이 바이브 로그 (최근 6개월)
+                        </h3>
+                        <a
+                            href="/attendance"
+                            style={{
+                                padding: '8px 16px',
+                                background: 'rgba(99, 102, 241, 0.2)',
+                                border: '1px solid #6366f1',
+                                borderRadius: '8px',
+                                color: '#818cf8',
+                                fontSize: '0.85rem',
+                                textDecoration: 'none',
+                                fontWeight: '500',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.background = 'rgba(99, 102, 241, 0.3)';
+                                e.target.style.transform = 'scale(1.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.background = 'rgba(99, 102, 241, 0.2)';
+                                e.target.style.transform = 'scale(1)';
+                            }}
+                        >
+                            전체 보기 →
+                        </a>
+                    </div>
 
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', position: 'relative', zIndex: 1 }}>
-                        {heatmapData.map((day, i) => {
-                            let bg = 'rgba(255,255,255,0.05)';
-                            let glow = 'none';
-                            let vibeLabel = '기록 없음';
-
-                            if (day.record) {
-                                switch (day.record.vibe_status) {
-                                    case 'BURNING':
-                                        bg = 'linear-gradient(135deg, #f97316, #fb923c)';
-                                        glow = '0 0 10px rgba(249, 115, 22, 0.5)';
-                                        vibeLabel = '🔥 Burning';
-                                        break;
-                                    case 'CHILL':
-                                        bg = 'linear-gradient(135deg, #2dd4bf, #5eead4)';
-                                        glow = '0 0 10px rgba(45, 212, 191, 0.5)';
-                                        vibeLabel = '☕ Chill';
-                                        break;
-                                    case 'DEBUGGING':
-                                        bg = 'linear-gradient(135deg, #ef4444, #f87171)';
-                                        glow = '0 0 10px rgba(239, 68, 68, 0.5)';
-                                        vibeLabel = '🐛 Debugging';
-                                        break;
-                                    case 'LEARNING':
-                                        bg = 'linear-gradient(135deg, #a855f7, #c084fc)';
-                                        glow = '0 0 10px rgba(168, 85, 247, 0.5)';
-                                        vibeLabel = '📚 Learning';
-                                        break;
-                                    default:
-                                        bg = 'linear-gradient(135deg, #6366f1, #818cf8)';
-                                        glow = '0 0 10px rgba(99, 102, 241, 0.5)';
-                                        vibeLabel = '✨ Vibe';
-                                }
-                            }
-
-                            return (
+                    {monthlyStats.length > 0 ? (
+                        <div style={{ display: 'grid', gap: '16px', position: 'relative', zIndex: 1 }}>
+                            {monthlyStats.map((monthData) => (
                                 <motion.div
-                                    key={i}
-                                    whileHover={{
-                                        scale: day.record ? 1.4 : 1.1,
-                                        zIndex: 10,
-                                        transition: { duration: 0.2 }
-                                    }}
-                                    title={`${day.date}\n${vibeLabel}\n${day.record ? '+10 Points' : ''}`}
+                                    key={monthData.monthKey}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
                                     style={{
-                                        width: '12px',
-                                        height: '12px',
-                                        borderRadius: '3px',
-                                        background: bg,
-                                        opacity: day.record ? 1 : 0.4,
-                                        boxShadow: day.record ? glow : 'none',
-                                        border: day.record ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.05)',
-                                        cursor: 'pointer',
-                                        backdropFilter: 'blur(4px)',
-                                        transition: 'all 0.2s ease'
+                                        background: 'rgba(255, 255, 255, 0.03)',
+                                        borderRadius: '16px',
+                                        padding: '20px',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        transition: 'all 0.3s'
                                     }}
-                                />
-                            );
-                        })}
-                    </div>
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                        <h4 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#e2e8f0', margin: 0 }}>
+                                            {monthData.year}년 {monthData.month}월
+                                        </h4>
+                                        <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: '500' }}>
+                                            총 {monthData.total}일 출석
+                                        </div>
+                                    </div>
 
-                    <div style={{ display: 'flex', gap: '16px', marginTop: '20px', fontSize: '0.8rem', color: '#cbd5e1', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <div style={{ width: '12px', height: '12px', background: 'linear-gradient(135deg, #f97316, #fb923c)', borderRadius: '3px', boxShadow: '0 0 6px rgba(249, 115, 22, 0.4)', border: '1px solid rgba(255, 255, 255, 0.2)' }} />
-                            <span>🔥 Burning</span>
+                                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                        {monthData.BURNING > 0 && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: 'rgba(249, 115, 22, 0.1)', borderRadius: '8px', border: '1px solid rgba(249, 115, 22, 0.3)' }}>
+                                                <span style={{ fontSize: '1.2rem' }}>🔥</span>
+                                                <div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#fb923c', marginBottom: '2px' }}>Burning</div>
+                                                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f97316' }}>{monthData.BURNING}일</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {monthData.CHILL > 0 && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: 'rgba(45, 212, 191, 0.1)', borderRadius: '8px', border: '1px solid rgba(45, 212, 191, 0.3)' }}>
+                                                <span style={{ fontSize: '1.2rem' }}>☕</span>
+                                                <div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#5eead4', marginBottom: '2px' }}>Chill</div>
+                                                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#2dd4bf' }}>{monthData.CHILL}일</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {monthData.DEBUGGING > 0 && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                                                <span style={{ fontSize: '1.2rem' }}>🐛</span>
+                                                <div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#f87171', marginBottom: '2px' }}>Debugging</div>
+                                                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#ef4444' }}>{monthData.DEBUGGING}일</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {monthData.LEARNING > 0 && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '8px', border: '1px solid rgba(168, 85, 247, 0.3)' }}>
+                                                <span style={{ fontSize: '1.2rem' }}>📚</span>
+                                                <div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#c084fc', marginBottom: '2px' }}>Learning</div>
+                                                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#a855f7' }}>{monthData.LEARNING}일</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ))}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <div style={{ width: '12px', height: '12px', background: 'linear-gradient(135deg, #2dd4bf, #5eead4)', borderRadius: '3px', boxShadow: '0 0 6px rgba(45, 212, 191, 0.4)', border: '1px solid rgba(255, 255, 255, 0.2)' }} />
-                            <span>☕ Chill</span>
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', position: 'relative', zIndex: 1 }}>
+                            아직 출석 기록이 없습니다. 출석 체크를 시작해보세요!
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <div style={{ width: '12px', height: '12px', background: 'linear-gradient(135deg, #ef4444, #f87171)', borderRadius: '3px', boxShadow: '0 0 6px rgba(239, 68, 68, 0.4)', border: '1px solid rgba(255, 255, 255, 0.2)' }} />
-                            <span>🐛 Debugging</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <div style={{ width: '12px', height: '12px', background: 'linear-gradient(135deg, #a855f7, #c084fc)', borderRadius: '3px', boxShadow: '0 0 6px rgba(168, 85, 247, 0.4)', border: '1px solid rgba(255, 255, 255, 0.2)' }} />
-                            <span>📚 Learning</span>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
             </div>
