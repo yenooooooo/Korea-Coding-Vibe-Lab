@@ -46,6 +46,8 @@ import NotFound from './pages/NotFound'
 import ProjectShowcase from './pages/ProjectShowcase'
 import PointHistory from './pages/PointHistory'
 import { AuthProvider } from './context/AuthContext'
+import { ToastProvider } from './context/ToastContext'
+import { FocusCamProvider } from './context/FocusCamContext'
 import { useAnalytics } from './hooks/useAnalytics'
 
 function AppRoutes() {
@@ -103,9 +105,6 @@ function AppRoutes() {
         </Routes>
     )
 }
-
-import { ToastProvider } from './context/ToastContext'
-import { FocusCamProvider } from './context/FocusCamContext'
 
 function App() {
     return (
