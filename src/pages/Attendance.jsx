@@ -99,22 +99,6 @@ const Attendance = () => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [showAllHistory, setShowAllHistory] = useState(false);
 
-    useEffect(() => {
-        if (user) {
-            fetchUserData();
-            fetchAttendanceHistory();
-            fetchLeaderboard();
-        }
-    }, [user, showAllHistory, fetchLeaderboard]);
-
-    // AuthContext Realtime 동기화: 관리자 포인트 지급 등 외부 변경 즉시 반영
-    useEffect(() => {
-        if (authProfile) {
-            setStreak(authProfile.current_streak || 0);
-            setTotalPoints(authProfile.total_points || 0);
-        }
-    }, [authProfile?.total_points, authProfile?.current_streak]);
-
     const fetchUserData = async () => {
         try {
             const today = getTodayKST();
@@ -170,6 +154,22 @@ const Attendance = () => {
             setLeaderboardDetails(details);
         }
     }, []);
+
+    useEffect(() => {
+        if (user) {
+            fetchUserData();
+            fetchAttendanceHistory();
+            fetchLeaderboard();
+        }
+    }, [user, showAllHistory, fetchLeaderboard]);
+
+    // AuthContext Realtime 동기화: 관리자 포인트 지급 등 외부 변경 즉시 반영
+    useEffect(() => {
+        if (authProfile) {
+            setStreak(authProfile.current_streak || 0);
+            setTotalPoints(authProfile.total_points || 0);
+        }
+    }, [authProfile?.total_points, authProfile?.current_streak]);
 
     const handleCheckIn = async () => {
         if (!user) return;
