@@ -138,11 +138,11 @@ const MainLayout = () => {
                     filter: `user_id=eq.${user.id}`,
                 },
                 (payload) => {
-                    if (!payload.new.is_read && payload.old.is_read) {
-                        // 읽음으로 변경
+                    if (payload.new.is_read && !payload.old.is_read) {
+                        // 미읽음 → 읽음으로 변경: 카운트 -1
                         setUnreadNotificationCount(prev => Math.max(0, prev - 1));
-                    } else if (payload.new.is_read && !payload.old.is_read) {
-                        // 읽지 않음으로 변경
+                    } else if (!payload.new.is_read && payload.old.is_read) {
+                        // 읽음 → 미읽음으로 변경: 카운트 +1
                         setUnreadNotificationCount(prev => prev + 1);
                     }
                 }

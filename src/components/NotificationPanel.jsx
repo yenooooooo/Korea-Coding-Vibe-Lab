@@ -63,7 +63,7 @@ const NotificationPanel = ({ isOpen, onClose, style }) => {
         if (!user) return;
 
         const channel = supabase
-            .channel('notifications_realtime')
+            .channel('notifications_panel_' + user.id)
             .on(
                 'postgres_changes',
                 {
