@@ -64,13 +64,21 @@ const StatsCard = memo(({ icon, label, value, color, gradient }) => (
 
 StatsCard.displayName = 'StatsCard';
 
-// Vibes 상수 (icon을 함수로 변경하여 초기화 문제 해결)
-const vibes = [
-    { id: 'BURNING', icon: (props) => <Flame {...props} />, label: 'Burning 🔥', color: '#f97316', desc: '오늘 하루 불태운다!' },
-    { id: 'CHILL', icon: (props) => <Coffee {...props} />, label: 'Chill ☕', color: '#2dd4bf', desc: '여유롭게 코딩 한잔' },
-    { id: 'DEBUGGING', icon: (props) => <Bug {...props} />, label: 'Debugging 🐛', color: '#ef4444', desc: '버그와의 사투' },
-    { id: 'LEARNING', icon: (props) => <Brain {...props} />, label: 'Learning 📚', color: '#a855f7', desc: '새로운 지식 흡수' }
+// Vibes 데이터 (JSX 없이 순수 데이터만)
+const VIBES_DATA = [
+    { id: 'BURNING', iconName: 'Flame', label: 'Burning 🔥', color: '#f97316', desc: '오늘 하루 불태운다!' },
+    { id: 'CHILL', iconName: 'Coffee', label: 'Chill ☕', color: '#2dd4bf', desc: '여유롭게 코딩 한잔' },
+    { id: 'DEBUGGING', iconName: 'Bug', label: 'Debugging 🐛', color: '#ef4444', desc: '버그와의 사투' },
+    { id: 'LEARNING', iconName: 'Brain', label: 'Learning 📚', color: '#a855f7', desc: '새로운 지식 흡수' }
 ];
+
+// Icon 매핑
+const ICON_MAP = {
+    Flame,
+    Coffee,
+    Bug,
+    Brain
+};
 
 // Quotes 상수
 const quotes = [
@@ -83,6 +91,11 @@ const quotes = [
 ];
 
 const Attendance = () => {
+    // vibes를 컴포넌트 내부에서 생성 (JSX 포함)
+    const vibes = useMemo(() => VIBES_DATA.map(v => ({
+        ...v,
+        icon: ICON_MAP[v.iconName]
+    })), []);
     const { user, profile: authProfile } = useAuth();
     const { addToast } = useToast();
     const [loading, setLoading] = useState(true);
@@ -327,13 +340,19 @@ const Attendance = () => {
                     color="#06b6d4"
                     gradient={['rgba(6, 182, 212, 0.2)', 'rgba(6, 182, 212, 0.05)']}
                 />
-                <StatsCard
-                    icon={vibes.find(v => v.id === stats.favoriteVibe)?.icon({ size: 18, color: vibes.find(v => v.id === stats.favoriteVibe)?.color }) || <Flame size={18} />}
-                    label="선호 바이브"
-                    value={vibes.find(v => v.id === stats.favoriteVibe)?.label.split(' ')[0] || '🔥'}
-                    color={vibes.find(v => v.id === stats.favoriteVibe)?.color || '#f97316'}
-                    gradient={[`${vibes.find(v => v.id === stats.favoriteVibe)?.color || '#f97316'}20`, `${vibes.find(v => v.id === stats.favoriteVibe)?.color || '#f97316'}05`]}
-                />
+                {(() => {
+                    const favoriteVibe = vibes.find(v => v.id === stats.favoriteVibe);
+                    const IconComponent = favoriteVibe?.icon || Flame;
+                    return (
+                        <StatsCard
+                            icon={<IconComponent size={18} color={favoriteVibe?.color} />}
+                            label="선호 바이브"
+                            value={favoriteVibe?.label.split(' ')[0] || '🔥'}
+                            color={favoriteVibe?.color || '#f97316'}
+                            gradient={[`${favoriteVibe?.color || '#f97316'}20`, `${favoriteVibe?.color || '#f97316'}05`]}
+                        />
+                    );
+                })()}
             </motion.div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
@@ -478,7 +497,9 @@ const Attendance = () => {
                                                 }}
                                             />
                                         )}
-                                        <div style={{ position: 'relative', zIndex: 1 }}>{v.icon({ color: v.color })}</div>
+                                        <div style={{ position: 'relative', zIndex: 1 }}>
+                                            <v.icon color={v.color} />
+                                        </div>
                                         <div style={{ textAlign: 'left', position: 'relative', zIndex: 1 }}>
                                             <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{v.label}</div>
                                             <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>{v.desc}</div>
