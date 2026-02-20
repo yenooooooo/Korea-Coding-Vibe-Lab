@@ -219,9 +219,9 @@ BEGIN
     SET total_points = total_points + p_amount
     WHERE id = p_user_id;
 
-    -- 포인트 히스토리 기록
-    INSERT INTO point_history (user_id, amount, description, type)
-    VALUES (p_user_id, p_amount, p_description, CASE WHEN p_amount > 0 THEN 'earn' ELSE 'spend' END);
+    -- 포인트 거래 기록
+    INSERT INTO point_transactions (user_id, amount, description, category)
+    VALUES (p_user_id, p_amount, p_description, CASE WHEN p_amount > 0 THEN 'bonus' ELSE 'shop' END);
 END;
 $$ LANGUAGE plpgsql;
 

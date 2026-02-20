@@ -82,6 +82,9 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
         }
     };
 
+    // 비로그인 사용자에게 자물쇠 표시용 공개 경로
+    const publicPaths = new Set(['/', '/about', '/login', '/signup', '/community', '/ranking', '/gallery', '/learn', '/moments', '/showcase', '/prompt-library', '/diagnosis']);
+
     const navCategories = [
         {
             id: 'main',
@@ -558,6 +561,9 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                                                                 {item.icon}
                                                             </span>
                                                             <span>{item.name}</span>
+                                                            {!user && !publicPaths.has(item.path) && (
+                                                                <span style={{ fontSize: '0.7rem', opacity: 0.5, marginLeft: 'auto' }}>🔒</span>
+                                                            )}
                                                             {isActive && (
                                                                 <div style={{
                                                                     position: 'absolute', right: '12px', width: '6px', height: '6px',

@@ -97,11 +97,11 @@ const StreakRecovery = ({ currentStreak, onSuccess }) => {
             }
 
             // 포인트 히스토리 기록
-            await supabase.from('point_history').insert({
+            await supabase.from('point_transactions').insert({
                 user_id: user.id,
                 amount: -item.cost,
                 description: `${item.name} 구매`,
-                type: 'purchase'
+                category: 'shop'
             });
 
             if (onSuccess) onSuccess();

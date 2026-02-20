@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings as SettingsIcon, Bell, Moon, Sun, Lock, Trash2, Globe, ChevronRight, Shield, Eye, EyeOff, Check, AlertTriangle, LogOut } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Palette, Lock, Trash2, Globe, ChevronRight, Shield, Eye, EyeOff, Check, AlertTriangle, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Settings = () => {
     const { user, profile, signOut } = useAuth();
@@ -17,8 +17,7 @@ const Settings = () => {
         return saved ? JSON.parse(saved) : { quest: true, battle: true, friend: true, system: true };
     });
 
-    // 테마 설정
-    const [theme, setTheme] = useState(() => localStorage.getItem('kcvl_theme') || 'dark');
+
 
     // 언어 설정
     const [language, setLanguage] = useState(() => localStorage.getItem('kcvl_language') || 'ko');
@@ -39,10 +38,7 @@ const Settings = () => {
         localStorage.setItem('kcvl_notifications', JSON.stringify(notifications));
     }, [notifications]);
 
-    useEffect(() => {
-        localStorage.setItem('kcvl_theme', theme);
-        document.documentElement.setAttribute('data-theme', theme);
-    }, [theme]);
+
 
     useEffect(() => {
         localStorage.setItem('kcvl_language', language);
@@ -199,30 +195,22 @@ const Settings = () => {
             </SectionCard>
 
             {/* 테마 설정 */}
-            <SectionCard icon={theme === 'dark' ? <Moon size={22} /> : <Sun size={22} />} title="테마 설정" description="사이트 테마를 선택하세요" color="#f59e0b">
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    {[
-                        { id: 'dark', label: '다크 모드', icon: <Moon size={20} />, desc: '눈이 편한 어두운 테마' },
-                        { id: 'light', label: '라이트 모드', icon: <Sun size={20} />, desc: '밝고 깔끔한 테마 (준비 중)' },
-                    ].map(t => (
-                        <motion.div
-                            key={t.id}
-                            whileHover={{ scale: 1.02 }}
-                            onClick={() => { setTheme(t.id); addToast(`${t.label}로 변경되었습니다.`, 'success'); }}
-                            style={{
-                                flex: 1, padding: '20px', borderRadius: '14px', cursor: 'pointer',
-                                background: theme === t.id ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.03)',
-                                border: theme === t.id ? '2px solid #6366f1' : '1px solid rgba(255,255,255,0.08)',
-                                textAlign: 'center', transition: 'all 0.3s',
-                            }}
-                        >
-                            <div style={{ color: theme === t.id ? '#6366f1' : '#64748b', marginBottom: '8px' }}>{t.icon}</div>
-                            <div style={{ color: '#e2e8f0', fontWeight: '700', fontSize: '0.95rem' }}>{t.label}</div>
-                            <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '4px' }}>{t.desc}</div>
-                            {theme === t.id && <Check size={16} color="#6366f1" style={{ marginTop: '8px' }} />}
-                        </motion.div>
-                    ))}
-                </div>
+            <SectionCard icon={<Palette size={22} />} title="테마 설정" description="색상, 폰트, 컴팩트 모드 등을 커스텀하세요" color="#f59e0b">
+                <Link
+                    to="/theme"
+                    style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '18px 20px', borderRadius: '14px',
+                        background: 'rgba(245, 158, 11, 0.08)',
+                        border: '1px solid rgba(245, 158, 11, 0.2)',
+                        color: '#f59e0b', textDecoration: 'none',
+                        fontWeight: '700', fontSize: '0.95rem',
+                        transition: 'all 0.3s',
+                    }}
+                >
+                    <span>🎨 테마 커스터마이저 열기</span>
+                    <ChevronRight size={20} />
+                </Link>
             </SectionCard>
 
             {/* 언어 설정 */}

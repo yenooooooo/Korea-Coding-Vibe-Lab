@@ -4,6 +4,7 @@ import { Trophy, Plus, ExternalLink, Heart, MessageSquare, X, Send, Code2, Globe
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabase';
+import LoginPrompt from '../components/LoginPrompt';
 
 const ProjectShowcase = () => {
     const { user, profile } = useAuth();
@@ -14,6 +15,7 @@ const ProjectShowcase = () => {
     const [sortBy, setSortBy] = useState('latest');
     const [form, setForm] = useState({ title: '', description: '', url: '', github_url: '', tech_stack: '', screenshot_url: '' });
     const [submitting, setSubmitting] = useState(false);
+    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
     useEffect(() => { fetchProjects(); }, [sortBy]);
 
@@ -64,7 +66,7 @@ const ProjectShowcase = () => {
     };
 
     const handleLike = async (projectId) => {
-        if (!user) { addToast('로그인이 필요합니다.', 'error'); return; }
+        if (!user) { setShowLoginPrompt(true); return; }
         try {
             const project = projects.find(p => p.id === projectId);
             await supabase.from('project_showcases').update({ likes: (project?.likes || 0) + 1 }).eq('id', projectId);
@@ -96,7 +98,7 @@ const ProjectShowcase = () => {
                         </h1>
                         <p style={{ color: '#64748b', fontSize: '0.95rem' }}>멤버들이 만든 멋진 프로젝트를 구경하고 영감을 받으세요!</p>
                     </div>
-                    {user && (
+                    {user ? (
                         <motion.button
                             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                             onClick={() => setShowForm(true)}
@@ -104,6 +106,20 @@ const ProjectShowcase = () => {
                                 padding: '12px 24px', borderRadius: '14px',
                                 background: 'linear-gradient(135deg, #f59e0b, #ec4899)',
                                 border: 'none', color: '#fff', fontWeight: '700', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                            }}
+                        >
+                            <Plus size={20} /> 프로젝트 등록
+                        </motion.button>
+                    ) : (
+                        <motion.button
+                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                            onClick={() => setShowLoginPrompt(true)}
+                            style={{
+                                padding: '12px 24px', borderRadius: '14px',
+                                background: 'rgba(245, 158, 11, 0.15)',
+                                border: '1px solid rgba(245, 158, 11, 0.3)',
+                                color: '#f59e0b', fontWeight: '700', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', gap: '8px',
                             }}
                         >
@@ -311,6 +327,15 @@ const ProjectShowcase = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* 로그인 프롬프트 모달 */}
+            {showLoginPrompt && (
+                <LoginPrompt
+                    isModal
+                    message="프로젝트를 등록하거나 좋아요를 누르려면 로그인하세요"
+                    onClose={() => setShowLoginPrompt(false)}
+                />
+            )}
         </div>
     );
 };
