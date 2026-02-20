@@ -4,6 +4,7 @@ import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { getVibeLevel } from '../utils/vibeLevel';
+import { isAdmin } from '../utils/admin';
 import LivePresenceIsland from './LivePresenceIsland';
 
 const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 0, onNotificationClick = () => { } }) => {
@@ -195,12 +196,13 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
             color: '#a855f7',
             bgColor: 'rgba(168, 85, 247, 0.1)',
             borderColor: '#a855f7',
+            adminOnly: true,
             items: [
                 { name: '분석 (Analytics)', path: '/admin', icon: <BarChart size={18} /> },
                 { name: '멘토 관리 (Mentors)', path: '/admin-mentors', icon: <Users2 size={18} /> },
             ]
         }
-    ];
+    ].filter(cat => !cat.adminOnly || isAdmin(profile));
 
     // 정확한 레벨 및 XP 계산 (Safety Check)
     const levelInfo = React.useMemo(() => {
@@ -576,7 +578,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                             <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {user ? (
                                     <>
-                                        {user.email === 'yaya01234@naver.com' && (
+                                        {isAdmin(profile) && (
                                             <NavLink
                                                 to="/admin"
                                                 onClick={onToggle}
