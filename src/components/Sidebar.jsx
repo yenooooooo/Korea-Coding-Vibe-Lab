@@ -83,7 +83,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
     };
 
     // 비로그인 사용자에게 자물쇠 표시용 공개 경로
-    const publicPaths = new Set(['/', '/about', '/login', '/signup', '/community', '/ranking', '/gallery', '/learn', '/moments', '/showcase', '/prompt-library', '/diagnosis']);
+    const publicPaths = new Set(['/', '/about', '/login', '/signup', '/community', '/ranking', '/gallery', '/learn', '/moments', '/showcase', '/diagnosis']);
 
     const navCategories = [
         {

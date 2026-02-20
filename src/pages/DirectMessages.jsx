@@ -351,7 +351,7 @@ const DirectMessages = () => {
                                     onClick={() => setSelectedConvId(conv.id)}
                                     whileHover={{ backgroundColor: 'rgba(129, 140, 248, 0.1)' }}
                                     style={{
-                                        width: '100%',
+                                        width: 'calc(100% - 16px)',
                                         padding: '12px 8px',
                                         marginBottom: '4px',
                                         borderRadius: '12px',
@@ -506,7 +506,8 @@ const DirectMessages = () => {
                                                     justifyContent: isOwn ? 'flex-end' : 'flex-start',
                                                     gap: '12px',
                                                     marginBottom: showTime ? '8px' : '2px',
-                                                    alignItems: 'flex-end'
+                                                    alignItems: 'flex-end',
+                                                    width: '100%'
                                                 }}
                                             >
                                                 {/* 메시지 + 액션 그룹 */}
@@ -514,9 +515,10 @@ const DirectMessages = () => {
                                                     display: 'flex',
                                                     gap: '8px',
                                                     alignItems: 'flex-end',
-                                                    flexDirection: isOwn ? 'row-reverse' : 'row'
+                                                    flexDirection: isOwn ? 'row-reverse' : 'row',
+                                                    maxWidth: '80%'
                                                 }}>
-                                                    <div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: isOwn ? 'flex-end' : 'flex-start' }}>
                                                         {/* 메시지 박스 */}
                                                         <div
                                                             onDoubleClick={() => setMessageActions(prev => ({
@@ -528,10 +530,11 @@ const DirectMessages = () => {
                                                                 color: isOwn ? '#fff' : '#e2e8f0',
                                                                 padding: '10px 14px',
                                                                 borderRadius: isOwn ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                                                                wordWrap: 'break-word',
+                                                                wordBreak: 'break-word',
+                                                                whiteSpace: 'pre-wrap',
+                                                                lineHeight: '1.4',
                                                                 fontSize: '0.95rem',
-                                                                transition: 'all 0.2s',
-                                                                maxWidth: '60%'
+                                                                transition: 'all 0.2s'
                                                             }}
                                                         >
                                                             {msg.content}
