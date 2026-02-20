@@ -4,6 +4,7 @@ import { ThumbsUp, UserPlus, CheckCircle, XCircle, CheckCheck, X, MessageSquare,
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { getExcludedNotificationTypes } from '../lib/notifications';
 
 const NOTIFICATION_ICONS = {
     REACTION: { icon: ThumbsUp, color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.1)' },
@@ -42,12 +43,20 @@ const NotificationPanel = ({ isOpen, onClose, style }) => {
     const fetchNotifications = async () => {
         if (!user) return;
         setLoading(true);
-        const { data, error } = await supabase
+
+        let query = supabase
             .from('notifications')
             .select('*')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
             .limit(20);
+
+        const excluded = getExcludedNotificationTypes();
+        if (excluded.length > 0) {
+            query = query.not('type', 'in', `(${excluded.join(',')})`);
+        }
+
+        const { data, error } = await query;
 
         if (!error && data) setNotifications(data);
         setLoading(false);
@@ -73,6 +82,9 @@ const NotificationPanel = ({ isOpen, onClose, style }) => {
                     filter: `user_id=eq.${user.id}`,
                 },
                 (payload) => {
+                    const excluded = getExcludedNotificationTypes();
+                    if (excluded.includes(payload.new.type)) return;
+
                     setNotifications((prev) => [payload.new, ...prev].slice(0, 20));
                 }
             )

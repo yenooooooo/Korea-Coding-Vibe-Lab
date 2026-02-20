@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ArrowRight, DollarSign } from 'lucide-react';
+import MentorPricing from '../components/MentorPricing';
 
 const MentorApplicationForm = () => {
     const { user } = useAuth();
@@ -178,6 +179,34 @@ const MentorApplicationForm = () => {
                 <p style={{ color: '#cbd5e1', fontSize: '1.1rem', margin: 0 }}>
                     경력자분들은 멘토로 가입하여 다른 학습자를 가르칠 수 있습니다
                 </p>
+            </motion.div>
+
+            {/* 멘토 수익 안내 */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                style={{
+                    padding: '30px',
+                    background: 'rgba(34, 197, 94, 0.1)',
+                    borderRadius: '20px',
+                    border: '1px solid rgba(34, 197, 94, 0.3)',
+                    marginBottom: '40px'
+                }}
+            >
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    marginBottom: '20px',
+                    color: '#e2e8f0'
+                }}>
+                    <DollarSign size={28} color="#22c55e" />
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>
+                        멘토 수익 안내
+                    </h2>
+                </div>
+                <MentorPricing basePrice={35000} showCalculator={true} />
             </motion.div>
 
             {/* 상태 배지 */}

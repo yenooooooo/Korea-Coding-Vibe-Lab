@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Check, Trash2, Filter, User, Gift, Trophy, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { getExcludedNotificationTypes } from '../lib/notifications';
 
 const NotificationCenter = ({ isOpen, onClose }) => {
     const { user } = useAuth();
@@ -28,6 +29,11 @@ const NotificationCenter = ({ isOpen, onClose }) => {
 
             if (filter !== 'all') {
                 query = query.eq('type', filter);
+            }
+
+            const excluded = getExcludedNotificationTypes();
+            if (excluded.length > 0) {
+                query = query.not('type', 'in', `(${excluded.join(',')})`);
             }
 
             const { data, error } = await query;

@@ -72,3 +72,49 @@ export const sendNotificationToMany = async (userIds, type, message, link = null
         console.error('sendNotificationToMany 오류:', err);
     }
 };
+
+/**
+ * 로컬 스토리지에서 알림 설정을 가져옵니다.
+ */
+export const getLocalNotificationSettings = () => {
+    try {
+        const saved = localStorage.getItem('kcvl_notifications');
+        if (saved) return JSON.parse(saved);
+    } catch (e) { }
+    return { quest: true, battle: true, friend: true, system: true };
+};
+
+/**
+ * 알림 타입과 설정 객체를 비교하여 해당 알림이 켜져 있는지 확인합니다.
+ */
+export const isNotificationEnabled = (type, settings) => {
+    if (!settings) settings = getLocalNotificationSettings();
+
+    const TYPE_MAP = {
+        quest: ['ACHIEVEMENT', 'POINTS_EARNED', 'BADGE_EARNED'],
+        battle: ['RANK_UP'],
+        friend: ['FRIEND_REQUEST', 'JOIN_REQUEST', 'JOIN_APPROVED', 'JOIN_REJECTED', 'REACTION', 'NEW_MESSAGE'],
+        system: ['MENTOR_BOOKING', 'PAYMENT_COMPLETE']
+    };
+
+    if (TYPE_MAP.quest.includes(type) && !settings.quest) return false;
+    if (TYPE_MAP.battle.includes(type) && !settings.battle) return false;
+    if (TYPE_MAP.friend.includes(type) && !settings.friend) return false;
+    if (TYPE_MAP.system.includes(type) && !settings.system) return false;
+
+    return true;
+};
+
+/**
+ * DB 쿼리에서 필터링할 제외 타입 목록을 반환합니다.
+ */
+export const getExcludedNotificationTypes = () => {
+    const settings = getLocalNotificationSettings();
+    const excluded = [];
+    if (!settings.quest) excluded.push('ACHIEVEMENT', 'POINTS_EARNED', 'BADGE_EARNED');
+    if (!settings.battle) excluded.push('RANK_UP');
+    if (!settings.friend) excluded.push('FRIEND_REQUEST', 'JOIN_REQUEST', 'JOIN_APPROVED', 'JOIN_REJECTED', 'REACTION', 'NEW_MESSAGE');
+    if (!settings.system) excluded.push('MENTOR_BOOKING', 'PAYMENT_COMPLETE');
+    return excluded;
+};
+

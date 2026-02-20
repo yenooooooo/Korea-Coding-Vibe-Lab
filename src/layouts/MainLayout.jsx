@@ -12,6 +12,7 @@ import OnboardingTour from '../components/OnboardingTour';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { getExcludedNotificationTypes } from '../lib/notifications';
 
 const MainLayout = () => {
     const { user } = useAuth();
@@ -103,11 +104,18 @@ const MainLayout = () => {
         if (!user) return;
 
         const fetchUnreadCount = async () => {
-            const { count } = await supabase
+            let query = supabase
                 .from('notifications')
                 .select('id', { count: 'exact', head: true })
                 .eq('user_id', user.id)
                 .eq('is_read', false);
+
+            const excluded = getExcludedNotificationTypes();
+            if (excluded.length > 0) {
+                query = query.not('type', 'in', `(${excluded.join(',')})`);
+            }
+
+            const { count } = await query;
             setUnreadNotificationCount(count || 0);
         };
 
@@ -125,6 +133,12 @@ const MainLayout = () => {
                     filter: `user_id=eq.${user.id}`,
                 },
                 (payload) => {
+                    const excluded = getExcludedNotificationTypes();
+                    if (excluded.includes(payload.new.type)) {
+                        // 설정에 의해 차단된 알림이라면 즉시 읽음 처리하고 팝업/카운트 무시
+                        supabase.from('notifications').update({ is_read: true }).eq('id', payload.new.id).then();
+                        return;
+                    }
                     setUnreadNotificationCount(prev => prev + 1);
                     // 실시간 팝업 토스트 표시
                     setPopupNotification(payload.new);

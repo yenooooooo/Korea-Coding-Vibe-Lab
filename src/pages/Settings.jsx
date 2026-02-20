@@ -6,10 +6,68 @@ import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
 
+const ToggleSwitch = ({ enabled, onToggle }) => (
+    <motion.div
+        onClick={onToggle}
+        style={{
+            width: '48px', height: '26px', borderRadius: '13px', cursor: 'pointer',
+            background: enabled ? 'linear-gradient(135deg, #6366f1, #a855f7)' : 'rgba(255,255,255,0.1)',
+            padding: '3px', transition: 'background 0.3s',
+        }}
+    >
+        <motion.div
+            animate={{ x: enabled ? 22 : 0 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff' }}
+        />
+    </motion.div>
+);
+
+const SectionCard = ({ icon, title, description, children, color = '#6366f1' }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        style={{
+            background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.4))',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '20px', padding: '28px', marginBottom: '20px',
+        }}
+    >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+            <div style={{
+                width: '44px', height: '44px', borderRadius: '12px',
+                background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: color, border: `1px solid ${color}30`,
+            }}>
+                {icon}
+            </div>
+            <div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff', margin: 0 }}>{title}</h3>
+                {description && <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '2px 0 0' }}>{description}</p>}
+            </div>
+        </div>
+        {children}
+    </motion.div>
+);
+
+const SettingRow = ({ label, description, children }) => (
+    <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.05)',
+    }}>
+        <div style={{ flex: 1 }}>
+            <div style={{ color: '#e2e8f0', fontSize: '0.95rem', fontWeight: '600' }}>{label}</div>
+            {description && <div style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '2px' }}>{description}</div>}
+        </div>
+        {children}
+    </div>
+);
+
 const Settings = () => {
     const { user, profile, signOut } = useAuth();
     const { addToast } = useToast();
     const navigate = useNavigate();
+    const { t, language, setLanguage } = useLanguage();
 
     // 알림 설정
     const [notifications, setNotifications] = useState(() => {
@@ -19,8 +77,6 @@ const Settings = () => {
 
 
 
-    // 언어 설정
-    const [language, setLanguage] = useState(() => localStorage.getItem('kcvl_language') || 'ko');
 
     // 비밀번호 변경
     const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
@@ -40,9 +96,7 @@ const Settings = () => {
 
 
 
-    useEffect(() => {
-        localStorage.setItem('kcvl_language', language);
-    }, [language]);
+
 
     const handleToggleNotification = (key) => {
         setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
@@ -101,67 +155,10 @@ const Settings = () => {
         return (
             <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8' }}>
                 <SettingsIcon size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
-                <p>로그인 후 설정을 이용할 수 있습니다.</p>
+                <p>{t('settings.login.required')}</p>
             </div>
         );
     }
-
-    const ToggleSwitch = ({ enabled, onToggle }) => (
-        <motion.div
-            onClick={onToggle}
-            style={{
-                width: '48px', height: '26px', borderRadius: '13px', cursor: 'pointer',
-                background: enabled ? 'linear-gradient(135deg, #6366f1, #a855f7)' : 'rgba(255,255,255,0.1)',
-                padding: '3px', transition: 'background 0.3s',
-            }}
-        >
-            <motion.div
-                animate={{ x: enabled ? 22 : 0 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#fff' }}
-            />
-        </motion.div>
-    );
-
-    const SectionCard = ({ icon, title, description, children, color = '#6366f1' }) => (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            style={{
-                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.4))',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '20px', padding: '28px', marginBottom: '20px',
-            }}
-        >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
-                <div style={{
-                    width: '44px', height: '44px', borderRadius: '12px',
-                    background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: color, border: `1px solid ${color}30`,
-                }}>
-                    {icon}
-                </div>
-                <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff', margin: 0 }}>{title}</h3>
-                    {description && <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '2px 0 0' }}>{description}</p>}
-                </div>
-            </div>
-            {children}
-        </motion.div>
-    );
-
-    const SettingRow = ({ label, description, children }) => (
-        <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.05)',
-        }}>
-            <div style={{ flex: 1 }}>
-                <div style={{ color: '#e2e8f0', fontSize: '0.95rem', fontWeight: '600' }}>{label}</div>
-                {description && <div style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '2px' }}>{description}</div>}
-            </div>
-            {children}
-        </div>
-    );
 
     return (
         <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px', paddingBottom: '100px' }}>
@@ -173,29 +170,29 @@ const Settings = () => {
                     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                     marginBottom: '8px',
                 }}>
-                    ⚙️ 설정
+                    {t('settings.title')}
                 </h1>
-                <p style={{ color: '#64748b', fontSize: '0.95rem' }}>알림, 테마, 보안 등 사이트 환경을 설정하세요.</p>
+                <p style={{ color: '#64748b', fontSize: '0.95rem' }}>{t('settings.desc')}</p>
             </motion.div>
 
             {/* 알림 설정 */}
-            <SectionCard icon={<Bell size={22} />} title="알림 설정" description="받고 싶은 알림을 선택하세요" color="#6366f1">
-                <SettingRow label="퀘스트 알림" description="새 퀘스트, 보상 획득 알림">
+            <SectionCard icon={<Bell size={22} />} title={t('settings.notifications')} description={t('settings.notifications.desc')} color="#6366f1">
+                <SettingRow label={t('settings.notif.quest')} description={t('settings.notif.quest.desc')}>
                     <ToggleSwitch enabled={notifications.quest} onToggle={() => handleToggleNotification('quest')} />
                 </SettingRow>
-                <SettingRow label="배틀 알림" description="배틀 초대, 결과 알림">
+                <SettingRow label={t('settings.notif.battle')} description={t('settings.notif.battle.desc')}>
                     <ToggleSwitch enabled={notifications.battle} onToggle={() => handleToggleNotification('battle')} />
                 </SettingRow>
-                <SettingRow label="친구 알림" description="친구 요청, 메시지 알림">
+                <SettingRow label={t('settings.notif.friend')} description={t('settings.notif.friend.desc')}>
                     <ToggleSwitch enabled={notifications.friend} onToggle={() => handleToggleNotification('friend')} />
                 </SettingRow>
-                <SettingRow label="시스템 알림" description="공지사항, 업데이트 알림">
+                <SettingRow label={t('settings.notif.system')} description={t('settings.notif.system.desc')}>
                     <ToggleSwitch enabled={notifications.system} onToggle={() => handleToggleNotification('system')} />
                 </SettingRow>
             </SectionCard>
 
             {/* 테마 설정 */}
-            <SectionCard icon={<Palette size={22} />} title="테마 설정" description="색상, 폰트, 컴팩트 모드 등을 커스텀하세요" color="#f59e0b">
+            <SectionCard icon={<Palette size={22} />} title={t('settings.theme')} description={t('settings.theme.desc')} color="#f59e0b">
                 <Link
                     to="/theme"
                     style={{
@@ -208,13 +205,13 @@ const Settings = () => {
                         transition: 'all 0.3s',
                     }}
                 >
-                    <span>🎨 테마 커스터마이저 열기</span>
+                    <span>{t('settings.theme.open')}</span>
                     <ChevronRight size={20} />
                 </Link>
             </SectionCard>
 
             {/* 언어 설정 */}
-            <SectionCard icon={<Globe size={22} />} title="언어 설정" description="사이트 표시 언어" color="#10b981">
+            <SectionCard icon={<Globe size={22} />} title={t('settings.language')} description={t('settings.language.desc')} color="#10b981">
                 <div style={{ display: 'flex', gap: '12px' }}>
                     {[
                         { id: 'ko', label: '한국어', flag: '🇰🇷' },
@@ -241,18 +238,18 @@ const Settings = () => {
             </SectionCard>
 
             {/* 비밀번호 변경 */}
-            <SectionCard icon={<Lock size={22} />} title="비밀번호 변경" description={isOAuthUser ? 'OAuth 로그인은 비밀번호를 사용하지 않습니다' : '새 비밀번호를 설정하세요'} color="#8b5cf6">
+            <SectionCard icon={<Lock size={22} />} title={t('settings.password')} description={isOAuthUser ? t('settings.password.oauth') : t('settings.password.new')} color="#8b5cf6">
                 {isOAuthUser ? (
                     <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
                         <Shield size={32} style={{ marginBottom: '8px', opacity: 0.5 }} />
-                        <p>소셜 로그인(Google/GitHub)을 사용 중이므로 비밀번호 변경이 필요 없습니다.</p>
+                        <p>{t('settings.password.oauth.desc')}</p>
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         <div style={{ position: 'relative' }}>
                             <input
                                 type={showPassword ? 'text' : 'password'}
-                                placeholder="새 비밀번호 (6자 이상)"
+                                placeholder={t('settings.password.input.new')}
                                 value={passwordForm.newPassword}
                                 onChange={e => setPasswordForm(p => ({ ...p, newPassword: e.target.value }))}
                                 style={{
@@ -270,7 +267,7 @@ const Settings = () => {
                         </div>
                         <input
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="비밀번호 확인"
+                            placeholder={t('settings.password.input.confirm')}
                             value={passwordForm.confirmPassword}
                             onChange={e => setPasswordForm(p => ({ ...p, confirmPassword: e.target.value }))}
                             style={{
@@ -290,14 +287,14 @@ const Settings = () => {
                                 opacity: !passwordForm.newPassword ? 0.5 : 1,
                             }}
                         >
-                            {isChangingPassword ? '변경 중...' : '비밀번호 변경'}
+                            {isChangingPassword ? t('settings.password.btn.ing') : t('settings.password.btn')}
                         </motion.button>
                     </div>
                 )}
             </SectionCard>
 
             {/* 계정 탈퇴 */}
-            <SectionCard icon={<Trash2 size={22} />} title="계정 탈퇴" description="이 작업은 되돌릴 수 없습니다" color="#ef4444">
+            <SectionCard icon={<Trash2 size={22} />} title={t('settings.delete')} description={t('settings.delete.desc')} color="#ef4444">
                 {!showDeleteConfirm ? (
                     <motion.button
                         whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
@@ -310,7 +307,7 @@ const Settings = () => {
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                         }}
                     >
-                        <Trash2 size={18} /> 계정 탈퇴 진행
+                        <Trash2 size={18} /> {t('settings.delete.btn')}
                     </motion.button>
                 ) : (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
@@ -320,16 +317,16 @@ const Settings = () => {
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', color: '#ef4444' }}>
                                 <AlertTriangle size={20} />
-                                <strong>정말 탈퇴하시겠습니까?</strong>
+                                <strong>{t('settings.delete.confirm.title')}</strong>
                             </div>
                             <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '14px', lineHeight: '1.5' }}>
-                                탈퇴 시 프로필 정보가 초기화되며 복구할 수 없습니다.<br />
-                                확인하려면 아래에 <strong style={{ color: '#ef4444' }}>"탈퇴합니다"</strong>를 입력하세요.
+                                {t('settings.delete.confirm.desc')}<br />
+                                {t('settings.delete.confirm.instruct')} <strong style={{ color: '#ef4444' }}>"{t('settings.delete.confirm.keyword')}"</strong>{t('settings.delete.confirm.instruct2')}
                             </p>
                             <input
                                 type="text" value={deleteConfirmText}
                                 onChange={e => setDeleteConfirmText(e.target.value)}
-                                placeholder='탈퇴합니다'
+                                placeholder={t('settings.delete.confirm.keyword')}
                                 style={{
                                     width: '100%', padding: '12px 16px', borderRadius: '10px',
                                     background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239, 68, 68, 0.3)',

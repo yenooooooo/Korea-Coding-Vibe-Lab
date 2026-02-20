@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Info, CalendarCheck, MessageSquare, Users, Code2, LogIn, LogOut, BarChart, User, Swords, Trophy, Target, ShoppingBag, Ticket, Backpack, Store, MessageCircle, BookOpen, Fingerprint, Box, Bell, Lightbulb, Users2, Zap, Microscope, Award, Image, Heart, Calendar, Settings, Search, Coins, Bookmark, Code, Palette, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getVibeLevel } from '../utils/vibeLevel';
 import { isAdmin } from '../utils/admin';
 import LivePresenceIsland from './LivePresenceIsland';
@@ -39,6 +40,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
     }, []);
     const { user, profile, signOut } = useAuth();
     const navigate = useNavigate();
+    const { t } = useLanguage();
     const [notificationPulse, setNotificationPulse] = React.useState(false);
     const [targetCategory, setTargetCategory] = React.useState(null);
 
@@ -88,121 +90,121 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
     const navCategories = [
         {
             id: 'main',
-            title: 'Main',
+            title: t('sidebar.main'),
             icon: <Home size={24} />,
             color: '#6366f1',
             bgColor: 'rgba(99, 102, 241, 0.1)',
             borderColor: '#6366f1',
             items: [
-                { name: '홈 (Home)', path: '/', icon: <Home size={18} /> },
-                { name: '바이브 라운지 (Lounge)', path: '/community', icon: <MessageSquare size={18} /> },
-                { name: '바이브 소개 (About)', path: '/about', icon: <Info size={18} /> },
+                { name: t('sidebar.home'), path: '/', icon: <Home size={18} /> },
+                { name: t('sidebar.lounge'), path: '/community', icon: <MessageSquare size={18} /> },
+                { name: t('sidebar.about'), path: '/about', icon: <Info size={18} /> },
             ]
         },
         {
             id: 'battle',
-            title: 'Battle',
+            title: t('sidebar.battle'),
             icon: <Swords size={24} />,
             color: '#f59e0b',
             bgColor: 'rgba(245, 158, 11, 0.1)',
             borderColor: '#f59e0b',
             items: [
-                { name: '배틀 아레나 (Arena)', path: '/battle', icon: <Swords size={18} /> },
-                { name: '랭킹 (Ranking)', path: '/ranking', icon: <Trophy size={18} /> },
+                { name: t('sidebar.arena'), path: '/battle', icon: <Swords size={18} /> },
+                { name: t('sidebar.ranking') || '랭킹 (Ranking)', path: '/ranking', icon: <Trophy size={18} /> },
             ]
         },
         {
             id: 'growth',
-            title: 'Growth',
+            title: t('sidebar.growth'),
             icon: <Target size={24} />,
             color: '#ec4899',
             bgColor: 'rgba(236, 72, 153, 0.1)',
             borderColor: '#ec4899',
             items: [
-                { name: '퀘스트 (Quest)', path: '/quest', icon: <Target size={18} /> },
-                { name: '상점 (Shop)', path: '/shop', icon: <ShoppingBag size={18} /> },
-                { name: '시즌 패스 (Pass)', path: '/season-pass', icon: <Ticket size={18} /> },
-                { name: '인벤토리 (Inventory)', path: '/inventory', icon: <Backpack size={18} /> },
-                { name: '마켓 (Market)', path: '/market', icon: <Store size={18} /> },
-                { name: '멘토 찾기 (Mentor)', path: '/mentor', icon: <Users2 size={18} /> },
-                { name: '멘토 예약 (Booking)', path: '/mentor-booking', icon: <Calendar size={18} /> },
-                { name: 'AI 스터디 (Study)', path: '/ai-study', icon: <Lightbulb size={18} /> },
-                { name: '자기진단 (Diagnosis)', path: '/diagnosis', icon: <Microscope size={18} /> },
-                { name: '주간 챌린지 (Challenge)', path: '/challenge', icon: <Award size={18} /> },
-                { name: '일일 챌린지 (Daily)', path: '/daily-challenge', icon: <Target size={18} /> },
-                { name: '포인트 내역 (Points)', path: '/point-history', icon: <Coins size={18} /> },
+                { name: t('sidebar.quest') || '퀘스트 (Quest)', path: '/quest', icon: <Target size={18} /> },
+                { name: t('sidebar.vibe.shop'), path: '/shop', icon: <ShoppingBag size={18} /> },
+                { name: t('sidebar.season.pass'), path: '/season-pass', icon: <Ticket size={18} /> },
+                { name: t('sidebar.inventory'), path: '/inventory', icon: <Backpack size={18} /> },
+                { name: t('sidebar.vibe.market'), path: '/market', icon: <Store size={18} /> },
+                { name: t('sidebar.mentor'), path: '/mentor', icon: <Users2 size={18} /> },
+                { name: t('sidebar.mentor.booking') || '멘토 예약 (Booking)', path: '/mentor-booking', icon: <Calendar size={18} /> },
+                { name: t('sidebar.ai.study'), path: '/ai-study', icon: <Lightbulb size={18} /> },
+                { name: t('sidebar.diagnosis'), path: '/diagnosis', icon: <Microscope size={18} /> },
+                { name: t('sidebar.challenge'), path: '/challenge', icon: <Award size={18} /> },
+                { name: t('sidebar.daily'), path: '/daily-challenge', icon: <Target size={18} /> },
+                { name: t('sidebar.points'), path: '/point-history', icon: <Coins size={18} /> },
             ]
         },
         {
             id: 'social',
-            title: 'Social',
+            title: t('sidebar.social'),
             icon: <Users size={24} />,
             color: '#10b981',
             bgColor: 'rgba(16, 185, 129, 0.1)',
             borderColor: '#10b981',
             items: [
-                { name: '프로필 (Profile)', path: '/profile', icon: <User size={18} /> },
-                { name: '친구 (Friends)', path: '/friends', icon: <Users size={18} /> },
-                { name: 'DM (Messages)', path: '/messages', icon: <MessageCircle size={18} /> },
-                { name: '출석 (Attendance)', path: '/attendance', icon: <CalendarCheck size={18} /> },
-                { name: '스터디 (Study)', path: '/study', icon: <BookOpen size={18} /> },
-                { name: '따뜻한 순간 (Moments)', path: '/moments', icon: <Heart size={18} /> },
-                { name: '북마크 (Bookmarks)', path: '/bookmarks', icon: <Bookmark size={18} /> },
-                { name: '설정 (Settings)', path: '/settings', icon: <Settings size={18} /> },
+                { name: t('sidebar.profile'), path: '/profile', icon: <User size={18} /> },
+                { name: t('sidebar.friends'), path: '/friends', icon: <Users size={18} /> },
+                { name: t('sidebar.messages'), path: '/messages', icon: <MessageCircle size={18} /> },
+                { name: t('sidebar.attendance'), path: '/attendance', icon: <CalendarCheck size={18} /> },
+                { name: t('sidebar.study'), path: '/study', icon: <BookOpen size={18} /> },
+                { name: t('sidebar.moments'), path: '/moments', icon: <Heart size={18} /> },
+                { name: t('sidebar.bookmarks'), path: '/bookmarks', icon: <Bookmark size={18} /> },
+                { name: t('sidebar.settings'), path: '/settings', icon: <Settings size={18} /> },
             ]
         },
         {
             id: 'utility',
-            title: 'Utility',
+            title: t('sidebar.utility'),
             icon: <Fingerprint size={24} />,
             color: '#8b5cf6',
             bgColor: 'rgba(139, 92, 246, 0.1)',
             borderColor: '#8b5cf6',
             items: [
-                { name: '바이브 DNA', path: '/vibe-dna', icon: <Fingerprint size={18} /> },
-                { name: '샌드박스 (Sandbox)', path: '/sandbox', icon: <Box size={18} /> },
-                { name: '테마 설정 (Theme)', path: '/theme', icon: <Palette size={18} /> },
+                { name: t('sidebar.vibe.dna'), path: '/vibe-dna', icon: <Fingerprint size={18} /> },
+                { name: t('sidebar.vibe.sandbox'), path: '/sandbox', icon: <Box size={18} /> },
+                { name: t('settings.theme') || '테마 설정 (Theme)', path: '/theme', icon: <Palette size={18} /> },
             ]
         },
         {
             id: 'learn',
-            title: 'Learn',
+            title: t('sidebar.learn'),
             icon: <Lightbulb size={24} />,
             color: '#f59e0b',
             bgColor: 'rgba(245, 158, 11, 0.1)',
             borderColor: '#f59e0b',
             items: [
-                { name: '따라하기 (Learn)', path: '/learn', icon: <Lightbulb size={18} /> },
-                { name: '데모 (Demo)', path: '/demo', icon: <Zap size={18} /> },
-                { name: '스타터 가이드 (Guide)', path: '/starter-guide', icon: <BookOpen size={18} /> },
-                { name: '프롬프트 라이브러리 (Prompts)', path: '/prompt-library', icon: <BookOpen size={18} /> },
-                { name: '코드 스니펫 (Snippets)', path: '/code-snippets', icon: <Code size={18} /> },
-                { name: '스터디 타이머 (Timer)', path: '/study-timer', icon: <Clock size={18} /> },
+                { name: t('sidebar.learn.guide') || '따라하기 (Learn)', path: '/learn', icon: <Lightbulb size={18} /> },
+                { name: t('sidebar.interactive.demo'), path: '/demo', icon: <Zap size={18} /> },
+                { name: t('sidebar.starter.guide'), path: '/starter-guide', icon: <BookOpen size={18} /> },
+                { name: t('sidebar.prompt.library') || '프롬프트 라이브러리 (Prompts)', path: '/prompt-library', icon: <BookOpen size={18} /> },
+                { name: t('sidebar.snippets'), path: '/code-snippets', icon: <Code size={18} /> },
+                { name: t('sidebar.pomodoro'), path: '/study-timer', icon: <Clock size={18} /> },
             ]
         },
         {
             id: 'creative',
-            title: 'Creative',
+            title: t('sidebar.creative'),
             icon: <Image size={24} />,
             color: '#ec4899',
             bgColor: 'rgba(236, 72, 153, 0.1)',
             borderColor: '#ec4899',
             items: [
-                { name: '라이브 갤러리 (Gallery)', path: '/gallery', icon: <Image size={18} /> },
-                { name: '프로젝트 쇼케이스 (Showcase)', path: '/showcase', icon: <Trophy size={18} /> },
+                { name: t('sidebar.gallery') || '라이브 갤러리 (Gallery)', path: '/gallery', icon: <Image size={18} /> },
+                { name: t('sidebar.showcase'), path: '/showcase', icon: <Trophy size={18} /> },
             ]
         },
         {
             id: 'admin',
-            title: 'Admin',
+            title: t('sidebar.admin'),
             icon: <BarChart size={24} />,
             color: '#a855f7',
             bgColor: 'rgba(168, 85, 247, 0.1)',
             borderColor: '#a855f7',
             adminOnly: true,
             items: [
-                { name: '분석 (Analytics)', path: '/admin', icon: <BarChart size={18} /> },
-                { name: '멘토 관리 (Mentors)', path: '/admin-mentors', icon: <Users2 size={18} /> },
+                { name: t('sidebar.admin.panel'), path: '/admin', icon: <BarChart size={18} /> },
+                { name: t('sidebar.admin.mentors') || '멘토 관리 (Mentors)', path: '/admin-mentors', icon: <Users2 size={18} /> },
             ]
         }
     ].filter(cat => !cat.adminOnly || isAdmin(profile));

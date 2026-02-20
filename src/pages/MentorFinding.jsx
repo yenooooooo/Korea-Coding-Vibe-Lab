@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, Users, Clock, X, Send, MessageCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Search, Star, Users, Clock, X, Send, MessageCircle, CheckCircle, AlertCircle, DollarSign } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import MentorPricing from '../components/MentorPricing';
 
 /**
  * MentorFinding 페이지
@@ -303,6 +304,34 @@ const MentorFinding = () => {
                 }}>
                     경험 많은 멘토와 1:1로 연결되어 당신의 성장을 함께하세요
                 </p>
+            </motion.div>
+
+            {/* 가격 정책 */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.05 }}
+                style={{
+                    marginBottom: '40px',
+                    padding: '24px',
+                    background: 'rgba(30, 41, 59, 0.6)',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(99, 102, 241, 0.2)'
+                }}
+            >
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '20px',
+                    color: '#e2e8f0'
+                }}>
+                    <DollarSign size={24} color="#6366f1" />
+                    <h2 style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: 0 }}>
+                        💰 투명한 가격 정책
+                    </h2>
+                </div>
+                <MentorPricing basePrice={35000} />
             </motion.div>
 
             {/* 검색 및 필터 */}

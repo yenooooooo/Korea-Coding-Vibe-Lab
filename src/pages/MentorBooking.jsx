@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { sendNotification } from '../lib/notifications';
-import { Star, MapPin, Clock, Users, X, Calendar, Send } from 'lucide-react';
+import { Star, MapPin, Clock, Users, X, Calendar, Send, Package, Coins } from 'lucide-react';
+import { PRICING_PACKAGES, SESSION_TYPES, calculatePrice } from '../components/MentorPricing';
 
 const MentorBooking = () => {
     const { user } = useAuth();
@@ -19,7 +20,10 @@ const MentorBooking = () => {
         scheduled_date: '',
         scheduled_time: '14:00',
         duration_minutes: 60,
-        message: ''
+        message: '',
+        sessionType: '60min',
+        packageType: 'single',
+        usePoints: 0
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -446,19 +450,159 @@ const MentorBooking = () => {
                                     </div>
                                 </div>
 
-                                {/* 예상 요금 */}
-                                <div style={{
-                                    padding: '14px',
-                                    background: 'rgba(99, 102, 241, 0.1)',
-                                    borderRadius: '8px',
-                                    border: '1px solid rgba(99, 102, 241, 0.3)',
-                                    textAlign: 'center'
-                                }}>
-                                    <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '0 0 6px 0' }}>예상 수업료</p>
-                                    <p style={{ fontSize: '1.3rem', fontWeight: '700', color: '#a5b4fc', margin: 0 }}>
-                                        ₩{(selectedMentor.hourly_rate * (bookingForm.duration_minutes / 60)).toLocaleString()}
-                                    </p>
+                                {/* 세션 타입 선택 */}
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.95rem', fontWeight: '600', color: '#e2e8f0' }}>
+                                        ⏰ 세션 타입
+                                    </label>
+                                    <select
+                                        value={bookingForm.sessionType}
+                                        onChange={(e) => {
+                                            const type = SESSION_TYPES.find(t => t.id === e.target.value);
+                                            setBookingForm({
+                                                ...bookingForm,
+                                                sessionType: e.target.value,
+                                                duration_minutes: type.duration
+                                            });
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px',
+                                            background: 'rgba(0, 0, 0, 0.2)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            borderRadius: '8px',
+                                            color: 'white',
+                                            fontSize: '1rem'
+                                        }}
+                                    >
+                                        {SESSION_TYPES.map(type => (
+                                            <option key={type.id} value={type.id}>
+                                                {type.name} ({type.duration}분) - {type.basePrice.toLocaleString()}원
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
+
+                                {/* 패키지 선택 */}
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.95rem', fontWeight: '600', color: '#e2e8f0' }}>
+                                        <Package size={16} style={{ display: 'inline', marginRight: '4px' }} />
+                                        패키지 선택
+                                    </label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                        {PRICING_PACKAGES.map(pkg => (
+                                            <button
+                                                key={pkg.id}
+                                                type="button"
+                                                onClick={() => setBookingForm({ ...bookingForm, packageType: pkg.id })}
+                                                style={{
+                                                    padding: '12px 8px',
+                                                    background: bookingForm.packageType === pkg.id ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                                                    border: bookingForm.packageType === pkg.id ? '2px solid #22c55e' : '1px solid rgba(255, 255, 255, 0.1)',
+                                                    borderRadius: '8px',
+                                                    color: 'white',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.85rem',
+                                                    position: 'relative'
+                                                }}
+                                            >
+                                                {pkg.popular && (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '-8px',
+                                                        right: '4px',
+                                                        background: '#22c55e',
+                                                        color: '#000',
+                                                        padding: '2px 6px',
+                                                        borderRadius: '4px',
+                                                        fontSize: '0.65rem',
+                                                        fontWeight: 'bold'
+                                                    }}>
+                                                        인기
+                                                    </div>
+                                                )}
+                                                <div style={{ fontWeight: 'bold' }}>{pkg.label}</div>
+                                                {pkg.discount > 0 && (
+                                                    <div style={{ fontSize: '0.7rem', color: '#22c55e' }}>{pkg.badge}</div>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* 포인트 사용 */}
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.95rem', fontWeight: '600', color: '#e2e8f0' }}>
+                                        <Coins size={16} style={{ display: 'inline', marginRight: '4px' }} />
+                                        포인트 사용 (보유: 10,000P)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="10000"
+                                        step="1000"
+                                        value={bookingForm.usePoints}
+                                        onChange={(e) => setBookingForm({ ...bookingForm, usePoints: parseInt(e.target.value) || 0 })}
+                                        placeholder="사용할 포인트 입력"
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px',
+                                            background: 'rgba(0, 0, 0, 0.2)',
+                                            border: '1px solid rgba(250, 204, 21, 0.3)',
+                                            borderRadius: '8px',
+                                            color: 'white',
+                                            fontSize: '1rem'
+                                        }}
+                                    />
+                                </div>
+
+                                {/* 예상 요금 */}
+                                {(() => {
+                                    const sessionType = SESSION_TYPES.find(t => t.id === bookingForm.sessionType);
+                                    const pricing = calculatePrice(sessionType?.basePrice || 35000, bookingForm.packageType, bookingForm.usePoints);
+                                    const pkg = PRICING_PACKAGES.find(p => p.id === bookingForm.packageType);
+
+                                    return (
+                                        <div style={{
+                                            padding: '16px',
+                                            background: 'rgba(99, 102, 241, 0.1)',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(99, 102, 241, 0.3)'
+                                        }}>
+                                            <div style={{ marginBottom: '12px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '4px' }}>
+                                                    <span>기본 금액 ({pkg.sessions}회)</span>
+                                                    <span>₩{pricing.original.toLocaleString()}</span>
+                                                </div>
+                                                {pkg.discount > 0 && (
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#22c55e', marginBottom: '4px' }}>
+                                                        <span>패키지 할인 ({pkg.discount}%)</span>
+                                                        <span>-₩{pricing.discountAmount.toLocaleString()}</span>
+                                                    </div>
+                                                )}
+                                                {bookingForm.usePoints > 0 && (
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#facc15', marginBottom: '4px' }}>
+                                                        <span>포인트 할인</span>
+                                                        <span>-₩{bookingForm.usePoints.toLocaleString()}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '12px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <span style={{ color: '#e2e8f0', fontSize: '1rem', fontWeight: 'bold' }}>최종 결제 금액</span>
+                                                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#a5b4fc' }}>
+                                                        ₩{pricing.final.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                                {pkg.sessions > 1 && (
+                                                    <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                                                        회당 ₩{pricing.pricePerSession.toLocaleString()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* 특별 요청사항 */}
                                 <div>

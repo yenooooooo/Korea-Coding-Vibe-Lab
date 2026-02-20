@@ -55,6 +55,7 @@ import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { FocusCamProvider } from './context/FocusCamContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { LanguageProvider } from './context/LanguageContext'
 import { useAnalytics } from './hooks/useAnalytics'
 
 function AppRoutes() {
@@ -128,11 +129,13 @@ function App() {
     return (
         <ToastProvider>
             <AuthProvider>
-                <ThemeProvider>
-                    <FocusCamProvider>
-                        <AppRoutes />
-                    </FocusCamProvider>
-                </ThemeProvider>
+                <LanguageProvider>
+                    <ThemeProvider>
+                        <FocusCamProvider>
+                            <AppRoutes />
+                        </FocusCamProvider>
+                    </ThemeProvider>
+                </LanguageProvider>
             </AuthProvider>
         </ToastProvider>
     )
