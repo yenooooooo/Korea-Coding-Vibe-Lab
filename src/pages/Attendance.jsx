@@ -625,7 +625,7 @@ const Attendance = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                style={{ marginTop: '30px', background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.4))', borderRadius: '24px', padding: '32px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', position: 'relative', overflow: 'hidden' }}
+                style={{ marginTop: '30px', background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.4))', borderRadius: '24px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', position: 'relative', overflow: 'hidden' }}
             >
                 {/* Ambient Glow Background */}
                 <motion.div
@@ -689,11 +689,11 @@ const Attendance = () => {
                 </div>
 
                 {/* 요일 헤더 */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '4px', position: 'relative', zIndex: 1 }}>
                     {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
                         <div key={day} style={{
                             textAlign: 'center',
-                            fontSize: '0.85rem',
+                            fontSize: '0.75rem',
                             fontWeight: 'bold',
                             color: i === 0 ? '#f87171' : i === 6 ? '#60a5fa' : '#94a3b8',
                             padding: '8px 0'
@@ -704,10 +704,10 @@ const Attendance = () => {
                 </div>
 
                 {/* 캘린더 그리드 */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', position: 'relative', zIndex: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', position: 'relative', zIndex: 1 }}>
                     {calendarData.map((day, i) => {
                         if (!day) {
-                            return <div key={`empty-${i}`} style={{ aspectRatio: '1', minHeight: '60px' }} />;
+                            return <div key={`empty-${i}`} style={{ aspectRatio: '1', minHeight: '36px' }} />;
                         }
 
                         let bg = 'rgba(255,255,255,0.03)';
@@ -753,7 +753,7 @@ const Attendance = () => {
                                 title={`${day.date}\n${vibeLabel}${day.record ? '\n+10 Points' : ''}`}
                                 style={{
                                     aspectRatio: '1',
-                                    minHeight: '60px',
+                                    minHeight: '36px',
                                     borderRadius: '12px',
                                     background: bg,
                                     border: isToday ? '2px solid #facc15' : '1px solid rgba(255, 255, 255, 0.1)',
@@ -784,14 +784,14 @@ const Attendance = () => {
                                         }}
                                     />
                                 )}
-                                <span style={{ fontSize: '0.9rem', fontWeight: isToday ? 'bold' : 'normal', color: isToday ? '#facc15' : '#cbd5e1', position: 'relative', zIndex: 1 }}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: isToday ? 'bold' : 'normal', color: isToday ? '#facc15' : '#cbd5e1', position: 'relative', zIndex: 1 }}>
                                     {day.dateObj.getDate()}
                                 </span>
                                 {day.record && (
                                     <motion.span
                                         initial={{ scale: 0 }}
                                         animate={{ scale: 1 }}
-                                        style={{ fontSize: '1.5rem', position: 'relative', zIndex: 1 }}
+                                        style={{ fontSize: '1rem', position: 'relative', zIndex: 1 }}
                                     >
                                         {vibeIcon}
                                     </motion.span>

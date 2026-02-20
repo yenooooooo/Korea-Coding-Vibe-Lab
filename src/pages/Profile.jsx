@@ -72,19 +72,6 @@ const Profile = () => {
         "https://api.dicebear.com/9.x/notionists/svg?seed=Designer"
     ];
 
-    useEffect(() => {
-        if (user) {
-            fetchProfileData();
-        }
-    }, [user]);
-
-    // AuthContext Realtime 동기화: 관리자 포인트 지급 등 외부 변경 즉시 반영
-    useEffect(() => {
-        if (authProfile && profile) {
-            setProfile(prev => prev ? { ...prev, total_points: authProfile.total_points } : prev);
-        }
-    }, [authProfile?.total_points]);
-
     const fetchProfileData = async () => {
         try {
             setLoading(true);
@@ -151,6 +138,19 @@ const Profile = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (user) {
+            fetchProfileData();
+        }
+    }, [user]);
+
+    // AuthContext Realtime 동기화: 관리자 포인트 지급 등 외부 변경 즉시 반영
+    useEffect(() => {
+        if (authProfile && profile) {
+            setProfile(prev => prev ? { ...prev, total_points: authProfile.total_points } : prev);
+        }
+    }, [authProfile?.total_points]);
 
     const handleUpdateProfile = async () => {
         try {
