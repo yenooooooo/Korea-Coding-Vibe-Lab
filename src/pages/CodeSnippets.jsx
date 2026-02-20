@@ -21,10 +21,6 @@ const CodeSnippets = () => {
         description: ''
     });
 
-    useEffect(() => {
-        if (user) fetchSnippets();
-    }, [user, selectedTag]);
-
     const fetchSnippets = async () => {
         let query = supabase
             .from('code_snippets')
@@ -39,6 +35,10 @@ const CodeSnippets = () => {
         const { data } = await query;
         setSnippets(data || []);
     };
+
+    useEffect(() => {
+        if (user) fetchSnippets();
+    }, [user, selectedTag]);
 
     const saveSnippet = async () => {
         const { error } = await supabase.from('code_snippets').insert({

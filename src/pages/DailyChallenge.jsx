@@ -56,12 +56,6 @@ const DailyChallenge = () => {
     const [completed, setCompleted] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (user) {
-            loadDailyChallenge();
-        }
-    }, [user]);
-
     const loadDailyChallenge = async () => {
         setLoading(true);
         try {
@@ -105,6 +99,12 @@ const DailyChallenge = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (user) {
+            loadDailyChallenge();
+        }
+    }, [user]);
 
     const completeChallenge = async () => {
         if (!todayChallenge || completed) return;

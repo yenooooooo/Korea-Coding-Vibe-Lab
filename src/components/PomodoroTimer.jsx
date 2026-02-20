@@ -13,18 +13,6 @@ const PomodoroTimer = () => {
     const [isBreak, setIsBreak] = useState(false);
     const [completedSessions, setCompletedSessions] = useState(0);
 
-    useEffect(() => {
-        let interval;
-        if (isRunning && timeLeft > 0) {
-            interval = setInterval(() => {
-                setTimeLeft(prev => prev - 1);
-            }, 1000);
-        } else if (timeLeft === 0) {
-            handleSessionComplete();
-        }
-        return () => clearInterval(interval);
-    }, [isRunning, timeLeft]);
-
     const handleSessionComplete = async () => {
         setIsRunning(false);
 
@@ -58,6 +46,18 @@ const PomodoroTimer = () => {
             setTimeLeft(25 * 60);
         }
     };
+
+    useEffect(() => {
+        let interval;
+        if (isRunning && timeLeft > 0) {
+            interval = setInterval(() => {
+                setTimeLeft(prev => prev - 1);
+            }, 1000);
+        } else if (timeLeft === 0) {
+            handleSessionComplete();
+        }
+        return () => clearInterval(interval);
+    }, [isRunning, timeLeft]);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);

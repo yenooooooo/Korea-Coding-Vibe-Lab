@@ -12,12 +12,6 @@ const Bookmarks = () => {
     const [filter, setFilter] = useState('all');
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (user) {
-            fetchBookmarks();
-        }
-    }, [user, filter]);
-
     const fetchBookmarks = async () => {
         setLoading(true);
         try {
@@ -41,6 +35,12 @@ const Bookmarks = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (user) {
+            fetchBookmarks();
+        }
+    }, [user, filter]);
 
     const deleteBookmark = async (id) => {
         try {

@@ -28,10 +28,6 @@ const ThemeCustomizer = () => {
     const [compactMode, setCompactMode] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        if (user) loadSettings();
-    }, [user]);
-
     const loadSettings = async () => {
         const { data } = await supabase
             .from('user_settings')
@@ -45,6 +41,10 @@ const ThemeCustomizer = () => {
             setCompactMode(data.compact_mode || false);
         }
     };
+
+    useEffect(() => {
+        if (user) loadSettings();
+    }, [user]);
 
     const saveSettings = async () => {
         setSaving(true);

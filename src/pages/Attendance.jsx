@@ -447,7 +447,9 @@ const Attendance = () => {
                     {/* Streak Recovery Component */}
                     <StreakRecovery currentStreak={streak} onSuccess={() => {
                         addToast('스트릭이 복구되었습니다!', 'success');
-                        loadData();
+                        fetchUserData();
+                        fetchAttendanceHistory();
+                        fetchLeaderboard();
                     }} />
 
                     {!checkedIn ? (
