@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Palette, Sun, Moon, Monitor, Check } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
+import { Palette, Sun, Moon, Check } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 
 const THEMES = [
     { id: 'dark', name: '다크', icon: <Moon size={20} />, primary: '#1e293b', secondary: '#0f172a' },
-    { id: 'light', name: '라이트', icon: <Sun size={20} />, primary: '#f8fafc', secondary: '#ffffff' },
+    { id: 'light', name: '라이트', icon: <Sun size={20} />, primary: '#f0f4f8', secondary: '#dfe6ed' },
     { id: 'purple', name: '퍼플 글로우', icon: <Palette size={20} />, primary: '#4c1d95', secondary: '#2e1065' },
     { id: 'ocean', name: '오션 블루', icon: <Palette size={20} />, primary: '#1e3a8a', secondary: '#1e40af' },
     { id: 'forest', name: '포레스트 그린', icon: <Palette size={20} />, primary: '#064e3b', secondary: '#065f46' },
@@ -15,55 +14,18 @@ const THEMES = [
 ];
 
 const FONT_SIZES = [
-    { id: 'small', name: '작게', value: '14px' },
-    { id: 'medium', name: '보통', value: '16px' },
-    { id: 'large', name: '크게', value: '18px' }
+    { id: 'small', name: '작게' },
+    { id: 'medium', name: '보통' },
+    { id: 'large', name: '크게' }
 ];
 
 const ThemeCustomizer = () => {
-    const { user } = useAuth();
+    const { theme, fontSize, compactMode, updateTheme, updateFontSize, updateCompactMode, saveSettings } = useTheme();
     const { addToast } = useToast();
-    const [selectedTheme, setSelectedTheme] = useState('dark');
-    const [fontSize, setFontSize] = useState('medium');
-    const [compactMode, setCompactMode] = useState(false);
-    const [saving, setSaving] = useState(false);
 
-    const loadSettings = async () => {
-        const { data } = await supabase
-            .from('user_settings')
-            .select('*')
-            .eq('user_id', user.id)
-            .maybeSingle();
-
-        if (data) {
-            setSelectedTheme(data.theme || 'dark');
-            setFontSize(data.font_size || 'medium');
-            setCompactMode(data.compact_mode || false);
-        }
-    };
-
-    useEffect(() => {
-        if (user) loadSettings();
-    }, [user]);
-
-    const saveSettings = async () => {
-        setSaving(true);
-        const { error } = await supabase
-            .from('user_settings')
-            .upsert({
-                user_id: user.id,
-                theme: selectedTheme,
-                font_size: fontSize,
-                compact_mode: compactMode
-            });
-
-        if (!error) {
-            addToast('설정이 저장되었습니다', 'success');
-            // 테마 적용
-            document.documentElement.style.setProperty('--primary-bg', THEMES.find(t => t.id === selectedTheme)?.primary);
-            document.documentElement.style.setProperty('--font-size', FONT_SIZES.find(f => f.id === fontSize)?.value);
-        }
-        setSaving(false);
+    const handleSave = async () => {
+        await saveSettings();
+        addToast('테마 설정이 저장되었습니다! ✨', 'success');
     };
 
     return (
@@ -73,34 +35,36 @@ const ThemeCustomizer = () => {
                     <Palette size={32} color="#facc15" />
                     테마 커스터마이징
                 </h1>
-                <p style={{ color: '#94a3b8', marginBottom: '40px' }}>나만의 스타일로 꾸며보세요</p>
+                <p style={{ color: '#94a3b8', marginBottom: '40px' }}>나만의 스타일로 꾸며보세요 — 변경사항이 즉시 적용됩니다</p>
             </motion.div>
 
             {/* Theme Selection */}
             <div style={{ marginBottom: '40px' }}>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '16px' }}>컬러 테마</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
-                    {THEMES.map(theme => (
+                    {THEMES.map(t => (
                         <motion.div
-                            key={theme.id}
+                            key={t.id}
                             whileHover={{ scale: 1.05 }}
-                            onClick={() => setSelectedTheme(theme.id)}
+                            onClick={() => updateTheme(t.id)}
                             style={{
                                 padding: '20px',
-                                background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                                background: `linear-gradient(135deg, ${t.primary}, ${t.secondary})`,
                                 borderRadius: '12px',
-                                border: selectedTheme === theme.id ? '2px solid #facc15' : '2px solid transparent',
+                                border: theme === t.id ? '2px solid #facc15' : '2px solid transparent',
                                 cursor: 'pointer',
-                                position: 'relative'
+                                position: 'relative',
+                                boxShadow: theme === t.id ? '0 0 20px rgba(250, 204, 21, 0.3)' : 'none',
+                                transition: 'all 0.3s'
                             }}
                         >
-                            {selectedTheme === theme.id && (
+                            {theme === t.id && (
                                 <div style={{ position: 'absolute', top: '8px', right: '8px' }}>
                                     <Check size={20} color="#facc15" />
                                 </div>
                             )}
-                            <div style={{ marginBottom: '8px' }}>{theme.icon}</div>
-                            <div style={{ fontWeight: 'bold' }}>{theme.name}</div>
+                            <div style={{ marginBottom: '8px' }}>{t.icon}</div>
+                            <div style={{ fontWeight: 'bold', color: '#fff' }}>{t.name}</div>
                         </motion.div>
                     ))}
                 </div>
@@ -114,7 +78,7 @@ const ThemeCustomizer = () => {
                         <motion.button
                             key={size.id}
                             whileHover={{ scale: 1.05 }}
-                            onClick={() => setFontSize(size.id)}
+                            onClick={() => updateFontSize(size.id)}
                             style={{
                                 flex: 1,
                                 padding: '16px',
@@ -123,7 +87,8 @@ const ThemeCustomizer = () => {
                                 borderRadius: '12px',
                                 color: '#fff',
                                 cursor: 'pointer',
-                                fontWeight: 'bold'
+                                fontWeight: 'bold',
+                                boxShadow: fontSize === size.id ? '0 4px 12px rgba(99, 102, 241, 0.4)' : 'none'
                             }}
                         >
                             {size.name}
@@ -138,7 +103,7 @@ const ThemeCustomizer = () => {
                     <input
                         type="checkbox"
                         checked={compactMode}
-                        onChange={(e) => setCompactMode(e.target.checked)}
+                        onChange={(e) => updateCompactMode(e.target.checked)}
                         style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                     />
                     <span style={{ fontSize: '1.1rem' }}>컴팩트 모드 (레이아웃 밀도 높임)</span>
@@ -149,8 +114,7 @@ const ThemeCustomizer = () => {
             <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={saveSettings}
-                disabled={saving}
+                onClick={handleSave}
                 style={{
                     width: '100%',
                     padding: '16px',
@@ -160,11 +124,16 @@ const ThemeCustomizer = () => {
                     color: '#000',
                     fontSize: '1.1rem',
                     fontWeight: 'bold',
-                    cursor: saving ? 'not-allowed' : 'pointer'
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 20px rgba(250, 204, 21, 0.3)'
                 }}
             >
-                {saving ? '저장 중...' : '설정 저장'}
+                설정 저장 (DB에 영구 저장)
             </motion.button>
+
+            <p style={{ marginTop: '12px', fontSize: '0.85rem', color: '#64748b', textAlign: 'center' }}>
+                💡 테마와 글꼴 크기는 즉시 미리보기됩니다. 저장 버튼을 눌러야 다음 방문에도 유지됩니다.
+            </p>
         </div>
     );
 };

@@ -53,6 +53,7 @@ import StudyTimer from './pages/StudyTimer'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { FocusCamProvider } from './context/FocusCamContext'
+import { ThemeProvider } from './context/ThemeContext'
 import { useAnalytics } from './hooks/useAnalytics'
 
 function AppRoutes() {
@@ -120,9 +121,11 @@ function App() {
     return (
         <ToastProvider>
             <AuthProvider>
-                <FocusCamProvider>
-                    <AppRoutes />
-                </FocusCamProvider>
+                <ThemeProvider>
+                    <FocusCamProvider>
+                        <AppRoutes />
+                    </FocusCamProvider>
+                </ThemeProvider>
             </AuthProvider>
         </ToastProvider>
     )

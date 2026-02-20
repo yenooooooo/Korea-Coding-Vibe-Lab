@@ -11,9 +11,11 @@ import SearchModal from '../components/SearchModal';
 import OnboardingTour from '../components/OnboardingTour';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const MainLayout = () => {
     const { user } = useAuth();
+    const { themeColors } = useTheme();
     const location = useLocation();
     const [isNavOpen, setIsNavOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -233,7 +235,7 @@ const MainLayout = () => {
 
     // Vibe Configurations
     const vibeStyles = {
-        default: { background: 'radial-gradient(circle at top right, #1e293b, #0f172a)' },
+        default: { background: themeColors.bg },
         hyper_blue: { background: 'radial-gradient(circle at top right, #1e3a8a, #020617)', filter: 'hue-rotate(-10deg) saturate(1.2)' },
         purple_glow: { background: 'radial-gradient(circle at top right, #4c1d95, #0f172a)', filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.3))' },
         emerald_chill: { background: 'radial-gradient(circle at top right, #064e3b, #020617)', filter: 'contrast(1.1) brightness(0.9)' },
