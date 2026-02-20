@@ -10,10 +10,10 @@ import ScrollToTop from './ScrollToTop';
 import { isAdmin, ADMIN_NAME_STYLE, ADMIN_BADGE_STYLE, ADMIN_AVATAR_GLOW } from '../utils/admin';
 import { VibeName, fetchBatchEquippedDetails } from '../utils/vibeItems.jsx';
 
-const VibeSquare = () => {
+const VibeSquare = ({ defaultCategory = 'all' }) => {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [category, setCategory] = useState('all'); // all, free, qna, tip, project
+    const [category, setCategory] = useState(defaultCategory); // all, free, qna, tip, project, beginner
     const [searchTerm, setSearchTerm] = useState('');
     const [showWriteModal, setShowWriteModal] = useState(false);
     const [selectedPost, setSelectedPost] = useState(null);
@@ -27,7 +27,8 @@ const VibeSquare = () => {
         { id: 'free', label: '자유', emoji: '🗣️' },
         { id: 'qna', label: '질문', emoji: '❓' },
         { id: 'tip', label: '꿀팁', emoji: '🍯' },
-        { id: 'project', label: '프로젝트', emoji: '🚀' }
+        { id: 'project', label: '프로젝트', emoji: '🚀' },
+        { id: 'beginner', label: '초보 Q&A', emoji: '🌱' }
     ];
 
     useEffect(() => {
@@ -471,6 +472,7 @@ const WriteModal = ({ onClose, user, refresh, postToEdit }) => {
                             <option value="qna">❓ 질문</option>
                             <option value="tip">🍯 꿀팁</option>
                             <option value="project">🚀 프로젝트</option>
+                            <option value="beginner">🌱 초보질문</option>
                         </select>
 
                         <input
@@ -589,6 +591,7 @@ const getCategoryLabel = (cat) => {
         case 'qna': return '질문';
         case 'tip': return '꿀팁';
         case 'project': return '프로젝트';
+        case 'beginner': return '초보 Q&A';
         default: return '기타';
     }
 };
@@ -599,6 +602,7 @@ const getCategoryColor = (cat) => {
         case 'qna': return 'rgba(239, 68, 68, 0.5)';
         case 'tip': return 'rgba(234, 179, 8, 0.5)';
         case 'project': return 'rgba(59, 130, 246, 0.5)';
+        case 'beginner': return 'rgba(16, 185, 129, 0.5)';
         default: return 'rgba(148, 163, 184, 0.5)';
     }
 };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import FirstDeployChallenge from '../components/FirstDeployChallenge';
 import { Download, BookOpen, Rocket, Code2, AlertTriangle, Wrench, ArrowRight, Sparkles, CheckCircle, X, Monitor, Zap, MessageSquare, Loader } from 'lucide-react';
 
 const StarterGuide = () => {
@@ -244,6 +245,8 @@ const StarterGuide = () => {
             </motion.div>
 
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
+            <FirstDeployChallenge />
         </div>
     );
 };

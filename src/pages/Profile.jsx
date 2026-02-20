@@ -14,6 +14,7 @@ import { fetchEquippedDetails, VibeName, getBannerStyle } from '../utils/vibeIte
 import LevelGuideModal from '../components/LevelGuideModal';
 import PointGuideModal from '../components/PointGuideModal';
 import UserJourneyIntegration from '../components/UserJourneyIntegration';
+import GrowthTimeline from '../components/GrowthTimeline';
 
 const Profile = () => {
     const { user, profile: authProfile } = useAuth();
@@ -43,6 +44,7 @@ const Profile = () => {
     const [equippedDetails, setEquippedDetails] = useState({});
     const [showLevelGuide, setShowLevelGuide] = useState(false);
     const [showPointGuide, setShowPointGuide] = useState(false);
+    const [postCount, setPostCount] = useState(0);
 
     useEffect(() => {
         if (profile?.equipped_items) {
@@ -112,6 +114,13 @@ const Profile = () => {
             setAllBadges(allBadgeData || []);
             setAttendanceHistory(attendanceData || []);
             setSeasonProgress(seasonData);
+
+            // 게시글 수 별도 조회
+            const { count } = await supabase
+                .from('board_posts')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id);
+            setPostCount(count || 0);
 
             // 새 뱃지 획득 감지 (localStorage 비교)
             const earnedIds = (badgeData || []).map(b => b.badge_id);
@@ -846,6 +855,14 @@ const Profile = () => {
             <PointGuideModal
                 isOpen={showPointGuide}
                 onClose={() => setShowPointGuide(false)}
+            />
+
+            {/* 성장 타임라인 */}
+            <GrowthTimeline
+                attendanceHistory={attendanceHistory}
+                badges={badges}
+                postCount={postCount}
+                profile={profile}
             />
 
             {/* 사용자 여정 및 퀘스트 섹션 */}
