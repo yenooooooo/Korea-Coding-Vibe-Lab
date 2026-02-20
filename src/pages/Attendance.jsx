@@ -64,12 +64,12 @@ const StatsCard = memo(({ icon, label, value, color, gradient }) => (
 
 StatsCard.displayName = 'StatsCard';
 
-// Vibes 상수 (컴포넌트 외부로 이동)
+// Vibes 상수 (icon을 함수로 변경하여 초기화 문제 해결)
 const vibes = [
-    { id: 'BURNING', icon: <Flame color="#f97316" />, label: 'Burning 🔥', color: '#f97316', desc: '오늘 하루 불태운다!' },
-    { id: 'CHILL', icon: <Coffee color="#2dd4bf" />, label: 'Chill ☕', color: '#2dd4bf', desc: '여유롭게 코딩 한잔' },
-    { id: 'DEBUGGING', icon: <Bug color="#ef4444" />, label: 'Debugging 🐛', color: '#ef4444', desc: '버그와의 사투' },
-    { id: 'LEARNING', icon: <Brain color="#a855f7" />, label: 'Learning 📚', color: '#a855f7', desc: '새로운 지식 흡수' }
+    { id: 'BURNING', icon: (props) => <Flame {...props} />, label: 'Burning 🔥', color: '#f97316', desc: '오늘 하루 불태운다!' },
+    { id: 'CHILL', icon: (props) => <Coffee {...props} />, label: 'Chill ☕', color: '#2dd4bf', desc: '여유롭게 코딩 한잔' },
+    { id: 'DEBUGGING', icon: (props) => <Bug {...props} />, label: 'Debugging 🐛', color: '#ef4444', desc: '버그와의 사투' },
+    { id: 'LEARNING', icon: (props) => <Brain {...props} />, label: 'Learning 📚', color: '#a855f7', desc: '새로운 지식 흡수' }
 ];
 
 // Quotes 상수
@@ -328,7 +328,7 @@ const Attendance = () => {
                     gradient={['rgba(6, 182, 212, 0.2)', 'rgba(6, 182, 212, 0.05)']}
                 />
                 <StatsCard
-                    icon={vibes.find(v => v.id === stats.favoriteVibe)?.icon || <Flame size={18} />}
+                    icon={vibes.find(v => v.id === stats.favoriteVibe)?.icon({ size: 18, color: vibes.find(v => v.id === stats.favoriteVibe)?.color }) || <Flame size={18} />}
                     label="선호 바이브"
                     value={vibes.find(v => v.id === stats.favoriteVibe)?.label.split(' ')[0] || '🔥'}
                     color={vibes.find(v => v.id === stats.favoriteVibe)?.color || '#f97316'}
@@ -478,7 +478,7 @@ const Attendance = () => {
                                                 }}
                                             />
                                         )}
-                                        <div style={{ position: 'relative', zIndex: 1 }}>{v.icon}</div>
+                                        <div style={{ position: 'relative', zIndex: 1 }}>{v.icon({ color: v.color })}</div>
                                         <div style={{ textAlign: 'left', position: 'relative', zIndex: 1 }}>
                                             <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{v.label}</div>
                                             <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>{v.desc}</div>
