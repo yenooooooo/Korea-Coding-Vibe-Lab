@@ -68,8 +68,6 @@ function AppRoutes() {
                 <Route path="/about" element={<About />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
-                <Route path="/demo" element={<InteractiveDemo />} />
-                <Route path="/starter-guide" element={<StarterGuide />} />
                 <Route path="/diagnosis" element={<CanIDoItPage />} />
 
                 {/* 🟡 읽기 허용 (참여는 각 페이지에서 LoginPrompt로 제한) */}
@@ -79,9 +77,11 @@ function AppRoutes() {
                 <Route path="/learn" element={<LearnPage />} />
                 <Route path="/moments" element={<CommunityPage />} />
                 <Route path="/showcase" element={<ProjectShowcase />} />
-                <Route path="/prompt-library" element={<PromptLibrary />} />
 
                 {/* 🔴 로그인 필수 */}
+                <Route path="/demo" element={<ProtectedRoute><InteractiveDemo /></ProtectedRoute>} />
+                <Route path="/starter-guide" element={<ProtectedRoute><StarterGuide /></ProtectedRoute>} />
+                <Route path="/prompt-library" element={<ProtectedRoute><PromptLibrary /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
                 <Route path="/shop" element={<ProtectedRoute><VibeShop /></ProtectedRoute>} />
