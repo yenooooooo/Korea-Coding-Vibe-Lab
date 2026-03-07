@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getVibeLevel } from '../utils/vibeLevel';
 import { isAdmin } from '../utils/admin';
+import { fetchEquippedDetails } from '../utils/vibeItems.jsx';
+import { supabase } from '../lib/supabase';
 import LivePresenceIsland from './LivePresenceIsland';
 
 const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 0, onNotificationClick = () => { } }) => {
@@ -45,6 +47,13 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
     const { t } = useLanguage();
     const [notificationPulse, setNotificationPulse] = React.useState(false);
     const [targetCategory, setTargetCategory] = React.useState(null);
+    const [equippedDetails, setEquippedDetails] = React.useState({});
+
+    React.useEffect(() => {
+        if (profile?.equipped_items) {
+            fetchEquippedDetails(supabase, profile.equipped_items).then(setEquippedDetails);
+        }
+    }, [profile?.equipped_items]);
 
     const handleLogout = async () => {
         await signOut();
@@ -358,7 +367,9 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                                 e.currentTarget.style.transform = 'scale(1)';
                                 e.currentTarget.style.boxShadow = `0 0 12px ${levelInfo.color}40`;
                             }}>
-                                {profile?.avatar_url ? (
+                                {equippedDetails?.avatar?.item_data?.emoji ? (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>{equippedDetails.avatar.item_data.emoji}</div>
+                                ) : profile?.avatar_url ? (
                                     <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
                                     <User size={24} color="#1e293b" />
@@ -643,7 +654,9 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                                                         e.currentTarget.style.transform = 'scale(1)';
                                                         e.currentTarget.style.boxShadow = `0 0 12px ${levelInfo.color}50, inset 0 0 6px ${levelInfo.color}30`;
                                                     }}>
-                                                        {profile?.avatar_url ? (
+                                                        {equippedDetails?.avatar?.item_data?.emoji ? (
+                                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>{equippedDetails.avatar.item_data.emoji}</div>
+                                                        ) : profile?.avatar_url ? (
                                                             <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                         ) : (
                                                             <User size={24} color="#1e293b" />
