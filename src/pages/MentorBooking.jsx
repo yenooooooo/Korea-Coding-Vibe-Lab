@@ -152,7 +152,7 @@ const MentorBooking = () => {
                     <p style={{ fontSize: '1.2rem' }}>현재 수업 가능한 멘토가 없습니다</p>
                 </motion.div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(350px, 100%), 1fr))', gap: '24px' }}>
                     {mentors.map((mentor, idx) => (
                         <motion.div
                             key={mentor.id}

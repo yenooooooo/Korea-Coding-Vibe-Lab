@@ -438,7 +438,7 @@ const StudyGroup = () => {
                 </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '25px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))', gap: '25px' }}>
                 {studyGroups.map((group) => (
                     <motion.div
                         key={group.id}

@@ -168,7 +168,7 @@ const StarterGuide = () => {
             </motion.div>
 
             {/* 콘텐츠 미리보기 카드 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginBottom: '60px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: '20px', marginBottom: '60px' }}>
                 {sections.map((section, idx) => (
                     <motion.div
                         key={section.num}

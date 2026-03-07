@@ -126,7 +126,7 @@ const StarterPack = () => {
                 transition={{ duration: 0.6, delay: 0.1 }}
                 style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
                     gap: '24px',
                     marginBottom: '60px'
                 }}
@@ -247,7 +247,7 @@ const StarterPack = () => {
 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))',
                     gap: '16px'
                 }}>
                     {resources.map((resource, idx) => (

@@ -534,7 +534,7 @@ const MentorFinding = () => {
                     transition={{ duration: 0.6, delay: 0.2 }}
                     style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))',
                         gap: '24px',
                         marginBottom: '60px'
                     }}

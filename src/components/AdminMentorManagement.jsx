@@ -339,7 +339,7 @@ const AdminMentorManagement = () => {
                                 <p style={{ fontSize: '1.2rem' }}>승인된 멘토가 없습니다</p>
                             </div>
                         ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))', gap: '20px' }}>
                                 {approvedMentors.map((mentor, idx) => (
                                     <motion.div
                                         key={mentor.id}

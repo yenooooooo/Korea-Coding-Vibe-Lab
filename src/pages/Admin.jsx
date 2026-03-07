@@ -689,7 +689,7 @@ const BattleDirector = () => {
                 Battle Director: 활성 배틀 감독
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))', gap: '16px' }}>
                 {rooms.map(room => (
                     <div key={room.id} style={{
                         background: 'rgba(30, 41, 59, 0.6)',

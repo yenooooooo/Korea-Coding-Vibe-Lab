@@ -294,7 +294,7 @@ const ProgressMap = ({ userPoints = 0, userStreak = 0 }) => {
 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))',
                     gap: '16px'
                 }}>
                     {currentStage.achievements.map((achievement, i) => (

@@ -305,7 +305,7 @@ const MainLayout = () => {
                     ...vibeStyles[activeVibe] || vibeStyles.default,
                     filter: vibeStyles[activeVibe]?.filter || 'none',
                     position: 'relative',
-                    overflow: 'hidden'
+                    overflowX: 'hidden'
                 }}
             >
                 {isGlitching && (

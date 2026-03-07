@@ -41,7 +41,7 @@ const StudyTimer = () => {
             {/* Info Cards */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))',
                 gap: '20px',
                 marginTop: '40px'
             }}>

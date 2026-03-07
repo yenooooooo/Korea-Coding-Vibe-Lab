@@ -156,7 +156,7 @@ const VibeMarket = () => {
                     <p style={{ color: '#64748b', fontSize: '1.2rem' }}>검색 결과가 없습니다. 첫 아티스트가 되어보세요!</p>
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '30px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: '30px' }}>
                     {filteredAssets.map(asset => (
                         <AssetCard
                             key={asset.id}

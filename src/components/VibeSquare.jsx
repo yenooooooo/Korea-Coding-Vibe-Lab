@@ -212,7 +212,7 @@ const VibeSquare = ({ defaultCategory = 'all' }) => {
 
             {/* Post List */}
             <div ref={containerRef} style={{ flex: 1, overflowY: 'auto', paddingRight: '4px', position: 'relative' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))', gap: '16px' }}>
                     {loading ? (
                         <div style={{ color: '#94a3b8', textAlign: 'center', gridColumn: '1/-1', padding: '40px' }}>로딩 중...</div>
                     ) : filteredPosts.length === 0 ? (

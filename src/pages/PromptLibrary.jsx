@@ -264,7 +264,7 @@ const PromptLibrary = () => {
             </div>
 
             {/* 프롬프트 카드 그리드 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: '16px' }}>
                 {filtered.length === 0 ? (
                     <div style={{ color: '#64748b', textAlign: 'center', gridColumn: '1/-1', padding: '60px', fontSize: '1rem' }}>
                         검색 결과가 없습니다.

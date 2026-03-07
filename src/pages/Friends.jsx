@@ -444,7 +444,7 @@ const Friends = () => {
 
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
                         gap: '16px'
                     }}>
                         {searchResults.map(profile => (
@@ -483,7 +483,7 @@ const Friends = () => {
                     {friends.length > 0 ? (
                         <div style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
                             gap: '16px'
                         }}>
                             {friends.map(friend => (
@@ -513,7 +513,7 @@ const Friends = () => {
                     {receivedRequests.length > 0 ? (
                         <div style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
                             gap: '16px'
                         }}>
                             {receivedRequests.map(req => (
@@ -542,7 +542,7 @@ const Friends = () => {
                     {sentRequests.length > 0 ? (
                         <div style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
                             gap: '16px'
                         }}>
                             {sentRequests.map(req => (

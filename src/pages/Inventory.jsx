@@ -152,7 +152,7 @@ const Inventory = () => {
             </motion.div>
 
             {/* 통계 카드 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap: '20px', marginBottom: '40px' }}>
                 {[
                     { title: '총 보유', count: totalCount, icon: '📦', color: '#6366f1' },
                     { title: '장착 중', count: equippedCount, icon: '⭐', color: '#a855f7' },

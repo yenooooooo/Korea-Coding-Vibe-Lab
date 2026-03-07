@@ -166,7 +166,7 @@ const ProjectShowcase = () => {
                     <p style={{ fontSize: '0.9rem' }}>첫 번째 프로젝트를 등록해보세요! 🚀</p>
                 </motion.div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))', gap: '20px' }}>
                     {projects.map((project, idx) => (
                         <motion.div
                             key={project.id}

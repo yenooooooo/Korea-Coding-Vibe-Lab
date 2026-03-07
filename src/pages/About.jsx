@@ -338,7 +338,7 @@ const About = () => {
                     viewport={{ once: true }}
                     style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))',
                         gap: '24px'
                     }}
                 >
@@ -390,7 +390,7 @@ const About = () => {
                         textAlign: 'center'
                     }}
                 >
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px', marginBottom: '40px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '32px', marginBottom: '40px' }}>
                         <MentorBenefit
                             emoji="🎓"
                             title="1:1 맞춤 상담"
@@ -433,7 +433,7 @@ const About = () => {
             <section style={{ maxWidth: '1000px', margin: '80px auto 0', padding: '0 20px' }}>
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
                     gap: '24px'
                 }}>
                     <ValueCard
@@ -495,7 +495,7 @@ const About = () => {
                 <h2 style={{ textAlign: 'center', fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '40px' }}>
                     🤝 우리의 커뮤니티 문화
                 </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '20px' }}>
                     <CultureItem
                         icon={<Users size={24} color="#60a5fa" />}
                         title="존중과 공유"

@@ -128,7 +128,7 @@ const StreakRecovery = ({ currentStreak, onSuccess }) => {
                 스트릭 보호 아이템
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap: '16px' }}>
                 {STREAK_ITEMS.map((item) => (
                     <motion.div
                         key={item.id}
