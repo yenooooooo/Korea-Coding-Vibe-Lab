@@ -45,11 +45,24 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
+        // Safety timeout: 5초 후에도 응답 없으면 강제 로딩 해제
+        const safetyTimer = setTimeout(() => {
+            setLoading(prev => {
+                if (prev) console.warn('Auth loading timeout - forcing render');
+                return false;
+            });
+        }, 5000);
+
         // Check active session on mount
         supabase.auth.getSession().then(async ({ data: { session } }) => {
+            clearTimeout(safetyTimer);
             setUser(session?.user ?? null)
             if (session?.user) await fetchProfile(session.user.id);
             setLoading(false)
+        }).catch((err) => {
+            console.error('getSession failed:', err);
+            clearTimeout(safetyTimer);
+            setLoading(false);
         })
 
         // Listen for auth changes
@@ -63,7 +76,10 @@ export const AuthProvider = ({ children }) => {
             setLoading(false)
         })
 
-        return () => subscription.unsubscribe()
+        return () => {
+            clearTimeout(safetyTimer);
+            subscription.unsubscribe();
+        }
     }, [])
 
     // Realtime Profile Sync
