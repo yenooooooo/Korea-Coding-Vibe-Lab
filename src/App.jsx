@@ -51,6 +51,7 @@ import CodeSnippets from './pages/CodeSnippets'
 import ThemeCustomizer from './pages/ThemeCustomizer'
 import StudyTimer from './pages/StudyTimer'
 import ProtectedRoute from './components/ProtectedRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { FocusCamProvider } from './context/FocusCamContext'
@@ -127,17 +128,19 @@ function AppRoutes() {
 
 function App() {
     return (
-        <ToastProvider>
-            <AuthProvider>
-                <LanguageProvider>
-                    <ThemeProvider>
-                        <FocusCamProvider>
-                            <AppRoutes />
-                        </FocusCamProvider>
-                    </ThemeProvider>
-                </LanguageProvider>
-            </AuthProvider>
-        </ToastProvider>
+        <ErrorBoundary>
+            <ToastProvider>
+                <AuthProvider>
+                    <LanguageProvider>
+                        <ThemeProvider>
+                            <FocusCamProvider>
+                                <AppRoutes />
+                            </FocusCamProvider>
+                        </ThemeProvider>
+                    </LanguageProvider>
+                </AuthProvider>
+            </ToastProvider>
+        </ErrorBoundary>
     )
 }
 
