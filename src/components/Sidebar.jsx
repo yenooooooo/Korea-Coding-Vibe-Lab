@@ -15,10 +15,12 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
         style.textContent = `
             @keyframes pulse {
                 0%, 100% {
-                    box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+                    opacity: 0.8;
+                    transform: scale(1);
                 }
                 50% {
-                    box-shadow: 0 0 12px rgba(16, 185, 129, 0.9);
+                    opacity: 1;
+                    transform: scale(1.1);
                 }
             }
             @keyframes shimmer {
@@ -230,8 +232,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                 position: 'fixed',
                 left: 0,
                 top: 0,
-                background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%)',
-                backdropFilter: 'blur(24px)',
+                background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(15, 23, 42, 1) 100%)',
                 borderRight: '1px solid rgba(255, 255, 255, 0.03)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -239,7 +240,9 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                 boxSizing: 'border-box',
                 zIndex: 50,
                 boxShadow: '4px 0 24px rgba(0,0,0,0.2)',
-                gap: '8px'
+                gap: '8px',
+                willChange: 'transform',
+                transform: 'translateZ(0)'
             }}>
                 {/* 로고 */}
                 <div style={{
@@ -410,7 +413,6 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                             style={{
                                 position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                                 background: 'rgba(0, 0, 0, 0.5)',
-                                backdropFilter: 'blur(4px)',
                                 zIndex: 49
                             }}
                         />
@@ -420,23 +422,24 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                             initial={{ x: -280 }}
                             animate={{ x: 0 }}
                             exit={{ x: -280 }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
                             style={{
                                 width: '280px',
                                 height: '100vh',
                                 position: 'fixed',
                                 left: 0,
                                 top: 0,
-                                background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(15, 23, 42, 0.95) 100%)',
-                                backdropFilter: 'blur(24px)',
-                                borderRight: '1px solid rgba(255, 255, 255, 0.03)',
+                                background: 'rgba(13, 20, 38, 0.99)',
+                                borderRight: '1px solid rgba(255, 255, 255, 0.05)',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 padding: '24px 16px',
                                 boxSizing: 'border-box',
                                 zIndex: 51,
-                                boxShadow: '4px 0 24px rgba(0,0,0,0.2)',
-                                overflowY: 'auto'
+                                boxShadow: '4px 0 24px rgba(0,0,0,0.3)',
+                                overflowY: 'auto',
+                                willChange: 'transform',
+                                transform: 'translateZ(0)'
                             }}
                         >
                             {/* 로고 + 알림 + 닫기 */}
@@ -596,7 +599,6 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                                                     background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))',
                                                     border: '1px solid rgba(245, 158, 11, 0.3)',
                                                     color: '#fbbf24', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem',
-                                                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.1)',
                                                     marginBottom: '10px'
                                                 })}
                                             >
@@ -617,7 +619,6 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '10px',
-                                            backdropFilter: 'blur(10px)',
                                             boxShadow: `0 8px 32px rgba(0,0,0,0.2), inset 0 0 12px ${levelInfo.color}15`
                                         }}>
                                             {/* 상단: 아바타 + 닉네임/레벨 + 로그아웃 */}
@@ -654,7 +655,8 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                                                         background: '#10b981',
                                                         border: '2px solid #0f172a',
                                                         boxShadow: '0 0 6px rgba(16, 185, 129, 0.6)',
-                                                        animation: 'pulse 2s infinite'
+                                                        animation: 'pulse 2.5s infinite ease-in-out',
+                                                        willChange: 'opacity, transform',
                                                     }} />
                                                     {/* 레벨 배지 */}
                                                     <div style={{
@@ -759,7 +761,8 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                                                             position: 'absolute', right: 0, top: 0, bottom: 0,
                                                             width: '2px',
                                                             background: 'rgba(255,255,255,0.4)',
-                                                            animation: 'shimmer 2s infinite'
+                                                            animation: 'shimmer 2.5s infinite linear',
+                                                            willChange: 'transform, opacity',
                                                         }} />
                                                     </motion.div>
                                                 </div>

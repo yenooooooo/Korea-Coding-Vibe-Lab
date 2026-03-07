@@ -33,10 +33,11 @@ const DirectMessages = () => {
         if (user) {
             fetchConversations();
             const channel = supabase
-                .channel('conversations_changes')
+                .channel('conversations_changes_' + user.id)
                 .on(
                     'postgres_changes',
-                    { event: '*', schema: 'public', table: 'conversations' }
+                    { event: '*', schema: 'public', table: 'conversations' },
+                    () => { fetchConversations(); }
                 )
                 .subscribe();
 
@@ -59,7 +60,9 @@ const DirectMessages = () => {
                         filter: `conversation_id=eq.${selectedConvId}`
                     },
                     (payload) => {
-                        setMessages(prev => [...prev, payload.new]);
+                        setMessages(prev =>
+                            prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]
+                        );
                         markAsRead(payload.new.id);
                     }
                 )

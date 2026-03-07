@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, MapPin, Eye, ChevronUp, X, ExternalLink } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -48,6 +48,7 @@ const LivePresenceIsland = ({ collapsed = true }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [hoveredUser, setHoveredUser] = useState(null);
     const [profiles, setProfiles] = useState({});
+    const profilesRef = useRef({});
     const panelRef = useRef(null);
 
     // 총 회원수 가져오기
@@ -75,10 +76,10 @@ const LivePresenceIsland = ({ collapsed = true }) => {
             );
             setOnlineUsers(users);
 
-            // 프로필 데이터 가져오기
+            // 프로필 데이터 가져오기 (ref로 최신 상태 참조)
             const userIds = users
                 .map(u => u.user_id)
-                .filter(id => id && !profiles[id]);
+                .filter(id => id && !profilesRef.current[id]);
             if (userIds.length > 0) {
                 fetchProfiles(userIds);
             }
@@ -89,7 +90,7 @@ const LivePresenceIsland = ({ collapsed = true }) => {
         };
     }, []);
 
-    const fetchProfiles = async (userIds) => {
+    const fetchProfiles = useCallback(async (userIds) => {
         const { data } = await supabase
             .from('profiles')
             .select('id, username, avatar_url, total_points, level')
@@ -98,10 +99,11 @@ const LivePresenceIsland = ({ collapsed = true }) => {
             setProfiles(prev => {
                 const newProfiles = { ...prev };
                 data.forEach(p => { newProfiles[p.id] = p; });
+                profilesRef.current = newProfiles;
                 return newProfiles;
             });
         }
-    };
+    }, []);
 
     // 페이지별 접속자 분포
     const pageDistribution = useMemo(() => {
@@ -157,11 +159,8 @@ const LivePresenceIsland = ({ collapsed = true }) => {
                 <div style={{ position: 'relative' }}>
                     <motion.div
                         animate={{
-                            boxShadow: [
-                                '0 0 4px rgba(34, 197, 94, 0.4), 0 0 8px rgba(34, 197, 94, 0.2)',
-                                '0 0 8px rgba(34, 197, 94, 0.8), 0 0 16px rgba(34, 197, 94, 0.4)',
-                                '0 0 4px rgba(34, 197, 94, 0.4), 0 0 8px rgba(34, 197, 94, 0.2)',
-                            ]
+                            scale: [1, 1.2, 1],
+                            opacity: [0.6, 1, 0.6]
                         }}
                         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                         style={{
@@ -169,6 +168,7 @@ const LivePresenceIsland = ({ collapsed = true }) => {
                             height: '10px',
                             borderRadius: '50%',
                             background: '#22c55e',
+                            willChange: 'transform, opacity'
                         }}
                     />
                 </div>
@@ -262,13 +262,15 @@ const PresencePanel = React.forwardRef(({
                 left: '56px',
                 width: '320px',
                 maxHeight: '500px',
-                background: 'rgba(15, 23, 42, 0.97)',
-                backdropFilter: 'blur(24px)',
+                background: 'rgba(13, 20, 38, 0.98)',
+                backdropFilter: 'blur(8px)',
                 borderRadius: '20px',
                 border: '1px solid rgba(99, 102, 241, 0.15)',
                 boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(99, 102, 241, 0.1)',
                 overflow: 'hidden',
                 zIndex: 9999,
+                willChange: 'transform',
+                transform: 'translateZ(0)',
             }}
         >
             {/* 헤더 */}
@@ -283,17 +285,15 @@ const PresencePanel = React.forwardRef(({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <motion.div
                         animate={{
-                            boxShadow: [
-                                '0 0 6px rgba(34, 197, 94, 0.5)',
-                                '0 0 12px rgba(34, 197, 94, 0.9)',
-                                '0 0 6px rgba(34, 197, 94, 0.5)',
-                            ]
+                            scale: [1, 1.3, 1],
+                            opacity: [0.5, 1, 0.5]
                         }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                         style={{
                             width: '8px', height: '8px',
                             borderRadius: '50%',
                             background: '#22c55e',
+                            willChange: 'transform, opacity'
                         }}
                     />
                     <div>

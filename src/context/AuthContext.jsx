@@ -29,11 +29,10 @@ export const AuthProvider = ({ children }) => {
 
             if (data) {
                 if (data.is_banned) {
-                    alert("이 계정은 정지되었습니다.");
                     await supabase.auth.signOut();
                     setUser(null);
                     setProfile(null);
-                    window.location.href = '/';
+                    window.location.href = '/?banned=1';
                     return;
                 }
                 setProfile(data);
@@ -47,9 +46,9 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         // Check active session on mount
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
             setUser(session?.user ?? null)
-            if (session?.user) fetchProfile(session.user.id);
+            if (session?.user) await fetchProfile(session.user.id);
             setLoading(false)
         })
 
@@ -87,9 +86,8 @@ export const AuthProvider = ({ children }) => {
 
                     // Immediate Ban Enforcement
                     if (payload.new.is_banned) {
-                        alert("관리자에 의해 계정이 정지되었습니다.");
                         supabase.auth.signOut();
-                        window.location.href = '/';
+                        window.location.href = '/?banned=1';
                     }
                 }
             )

@@ -5,6 +5,7 @@ import { Zap, Activity, Coffee, Code2, ArrowRight, Flame, Trophy, Sparkles, Brai
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import ProfileSummaryModal from '../components/ProfileSummaryModal';
 import DailyInspirationBanner from '../components/DailyInspirationBanner';
 import StarterPack from '../components/StarterPack';
@@ -15,6 +16,7 @@ import { VibeName, fetchBatchEquippedDetails } from '../utils/vibeItems.jsx';
 const Home = () => {
     const navigate = useNavigate();
     const { user, profile: authProfile } = useAuth();
+    const { error: toastError } = useToast();
     const [todaysHeat, setTodaysHeat] = useState(0);
     const [activeUsers, setActiveUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,6 +25,14 @@ const Home = () => {
     const [myStats, setMyStats] = useState(null);
     const [equippedDetails, setEquippedDetails] = useState({});
     const [demoStep, setDemoStep] = useState(0);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('banned') === '1') {
+            toastError('이 계정은 관리자에 의해 정지되었습니다.', 6000);
+            window.history.replaceState({}, '', '/');
+        }
+    }, []);
 
     const getGreeting = () => {
         const hour = new Date().getHours();
