@@ -72,7 +72,16 @@ const Payment = () => {
 
             const amount = calculateAmount();
 
-            // Toss Payments SDK 초기화
+            // Toss Payments SDK 동적 로드
+            if (!window.TossPayments) {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://js.tosspayments.com/v1/payment';
+                    s.onload = resolve;
+                    s.onerror = reject;
+                    document.head.appendChild(s);
+                });
+            }
             const tossPayments = window.TossPayments(clientKey);
 
             // 결제 요청

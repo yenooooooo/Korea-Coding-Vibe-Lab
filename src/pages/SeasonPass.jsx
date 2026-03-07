@@ -161,7 +161,16 @@ const PremiumPurchaseModal = ({ isOpen, onClose, season, userPoints, user }) => 
             // 고유 주문 번호 생성
             const orderId = `PREMIUMPASS_${user.id.substring(0, 8)}_${Date.now()}`;
 
-            // Toss Payments SDK 초기화
+            // Toss Payments SDK 동적 로드
+            if (!window.TossPayments) {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://js.tosspayments.com/v1/payment';
+                    s.onload = resolve;
+                    s.onerror = reject;
+                    document.head.appendChild(s);
+                });
+            }
             const tossPayments = window.TossPayments(clientKey);
 
             // 결제 요청
