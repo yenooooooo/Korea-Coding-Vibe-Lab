@@ -16,6 +16,8 @@ const Ranking = () => {
     const [loading, setLoading] = useState(true);
     const [equippedDetails, setEquippedDetails] = useState({});
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const [anchorPos, setAnchorPos] = useState(null);
+    const openProfile = (e, id) => { setSelectedUserId(id); setAnchorPos({ x: e.clientX, y: e.clientY }); };
 
     useEffect(() => {
         fetchRankings();
@@ -416,7 +418,7 @@ const Ranking = () => {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.05 }}
-                                onClick={() => setSelectedUserId(rank.id)}
+                                onClick={(e) => openProfile(e, rank.id)}
                                 style={{
                                     borderBottom: '1px solid rgba(129, 140, 248, 0.05)',
                                     background: myRank?.id === rank.id
@@ -539,7 +541,8 @@ const Ranking = () => {
             <ProfileSummaryModal
                 userId={selectedUserId}
                 isOpen={!!selectedUserId}
-                onClose={() => setSelectedUserId(null)}
+                onClose={() => { setSelectedUserId(null); setAnchorPos(null); }}
+                anchorPos={anchorPos}
             />
         </div>
     );

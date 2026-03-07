@@ -151,6 +151,16 @@ useEffect(() => {
 
 ---
 
+## 배포 명령어
+
+```bash
+git add .
+git commit -m "fix: 설명"   # fix: / feat: / refactor: / style: prefix 사용
+git push origin main         # push 시 Vercel/Netlify 자동 배포
+```
+
+---
+
 ## 파일 길이 관리 원칙
 
 작업 중 생성하거나 수정하는 모든 파일은 Claude가 한 번에 읽고 처리할 수 있는 길이로 유지한다.

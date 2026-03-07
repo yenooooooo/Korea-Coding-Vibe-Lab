@@ -7,7 +7,27 @@ import { getVibeLevel } from '../utils/vibeLevel';
 import { isAdmin, ADMIN_NAME_STYLE, ADMIN_BADGE_STYLE, ADMIN_AVATAR_GLOW, ADMIN_PROFILE_HEADER, ADMIN_TITLE_STYLE, ADMIN_TITLE_DEFAULT } from '../utils/admin';
 import { fetchEquippedDetails, VibeName, getBannerStyle } from '../utils/vibeItems.jsx';
 
-const ProfileSummaryModal = ({ userId, isOpen, onClose }) => {
+const getPopoverStyle = (anchorPos) => {
+    if (!anchorPos) return { right: '16px', top: '64px' };
+
+    const PANEL_WIDTH = 300;
+    const PANEL_HEIGHT = 520;
+    const MARGIN = 12;
+
+    let left = anchorPos.x + MARGIN;
+    let top = anchorPos.y;
+
+    if (left + PANEL_WIDTH > window.innerWidth - 8) {
+        left = anchorPos.x - PANEL_WIDTH - MARGIN;
+    }
+    if (top + PANEL_HEIGHT > window.innerHeight - 8) {
+        top = window.innerHeight - PANEL_HEIGHT - 8;
+    }
+
+    return { left: `${Math.max(8, left)}px`, top: `${Math.max(8, top)}px` };
+};
+
+const ProfileSummaryModal = ({ userId, isOpen, onClose, anchorPos }) => {
     const [profile, setProfile] = useState(null);
     const [userBadges, setUserBadges] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -112,15 +132,14 @@ const ProfileSummaryModal = ({ userId, isOpen, onClose }) => {
 
                     {/* Modal Panel */}
                     <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        transition={{ duration: 0.2 }}
+                        initial={{ opacity: 0, scale: 0.92, y: -8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.92, y: -8 }}
+                        transition={{ duration: 0.15, ease: 'easeOut' }}
                         onClick={(e) => e.stopPropagation()}
                         style={{
                             position: 'fixed',
-                            right: '16px',
-                            top: '64px',
+                            ...getPopoverStyle(anchorPos),
                             width: '288px',
                             backgroundColor: '#1a1a1a',
                             border: '1px solid #374151',

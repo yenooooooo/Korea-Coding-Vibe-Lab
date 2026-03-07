@@ -23,6 +23,8 @@ const DirectMessages = () => {
     const [sendingMessage, setSendingMessage] = useState(false);
     const [otherUserProfiles, setOtherUserProfiles] = useState({});
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const [anchorPos, setAnchorPos] = useState(null);
+    const openProfile = (e, id) => { setSelectedUserId(id); setAnchorPos({ x: e.clientX, y: e.clientY }); };
     const [hoveredMessageId, setHoveredMessageId] = useState(null);
     const [messageActions, setMessageActions] = useState({});
     const messagesEndRef = useRef(null);
@@ -448,7 +450,7 @@ const DirectMessages = () => {
                                 overflow: 'hidden',
                                 cursor: 'pointer'
                             }}
-                            onClick={() => setSelectedUserId(otherUser.id)}
+                            onClick={(e) => openProfile(e, otherUser.id)}
                         >
                             {otherUser.avatar_url ? (
                                 <img src={otherUser.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -727,7 +729,8 @@ const DirectMessages = () => {
             <ProfileSummaryModal
                 userId={selectedUserId}
                 isOpen={!!selectedUserId}
-                onClose={() => setSelectedUserId(null)}
+                onClose={() => { setSelectedUserId(null); setAnchorPos(null); }}
+                anchorPos={anchorPos}
             />
         </div>
     );

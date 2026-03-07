@@ -95,6 +95,8 @@ const Attendance = () => {
     const [showQuote, setShowQuote] = useState(false);
     const [todayQuote, setTodayQuote] = useState('');
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const [anchorPos, setAnchorPos] = useState(null);
+    const openProfile = (e, id) => { setSelectedUserId(id); setAnchorPos({ x: e.clientX, y: e.clientY }); };
     const [leaderboardDetails, setLeaderboardDetails] = useState({});
     const [showParticles, setShowParticles] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -573,7 +575,7 @@ const Attendance = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {leaderboard.map((user, index) => (
                             <div key={user.id}
-                                onClick={() => setSelectedUserId(user.id)}
+                                onClick={(e) => openProfile(e, user.id)}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -965,7 +967,8 @@ const Attendance = () => {
                 <ProfileSummaryModal
                     userId={selectedUserId}
                     isOpen={!!selectedUserId}
-                    onClose={() => setSelectedUserId(null)}
+                    onClose={() => { setSelectedUserId(null); setAnchorPos(null); }}
+                    anchorPos={anchorPos}
                 />
             )}
         </div>

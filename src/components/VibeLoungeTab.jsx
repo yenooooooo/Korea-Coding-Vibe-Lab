@@ -16,6 +16,14 @@ const VibeLoungeTab = () => {
     const [input, setInput] = useState('');
     const [codeMode, setCodeMode] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const [anchorPos, setAnchorPos] = useState(null);
+    const lastMousePos = React.useRef({ x: 0, y: 0 });
+    React.useEffect(() => {
+        const handler = (e) => { lastMousePos.current = { x: e.clientX, y: e.clientY }; };
+        window.addEventListener('mousemove', handler);
+        return () => window.removeEventListener('mousemove', handler);
+    }, []);
+    const openProfile = (id) => { setSelectedUserId(id); setAnchorPos({ ...lastMousePos.current }); };
     const [hoveredMsgId, setHoveredMsgId] = useState(null);
     const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
     const { user, profile } = useAuth();
@@ -506,7 +514,7 @@ const VibeLoungeTab = () => {
                                     isHovered={hoveredMsgId === msg.id}
                                     onHover={() => setHoveredMsgId(msg.id)}
                                     onLeave={() => setHoveredMsgId(null)}
-                                    onClickUser={() => setSelectedUserId(msg.user_id)}
+                                    onClickUser={() => openProfile(msg.user_id)}
                                     onDelete={() => handleDeleteMessage(msg.id)}
                                     onTogglePin={() => handleTogglePin(msg.id, msg.is_pinned)}
                                     currentUserIsAdmin={currentUserIsAdmin}
@@ -657,7 +665,8 @@ const VibeLoungeTab = () => {
             <ProfileSummaryModal
                 userId={selectedUserId}
                 isOpen={!!selectedUserId}
-                onClose={() => setSelectedUserId(null)}
+                onClose={() => { setSelectedUserId(null); setAnchorPos(null); }}
+                anchorPos={anchorPos}
             />
         </>
     );

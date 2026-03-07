@@ -22,6 +22,14 @@ const Friends = () => {
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState('friends'); // friends, received, sent, search
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const [anchorPos, setAnchorPos] = useState(null);
+    const lastMousePos = React.useRef({ x: 0, y: 0 });
+    React.useEffect(() => {
+        const handler = (e) => { lastMousePos.current = { x: e.clientX, y: e.clientY }; };
+        window.addEventListener('mousemove', handler);
+        return () => window.removeEventListener('mousemove', handler);
+    }, []);
+    const openProfile = (id) => { setSelectedUserId(id); setAnchorPos({ ...lastMousePos.current }); };
     const [equippedDetails, setEquippedDetails] = useState({});
 
     useEffect(() => {
@@ -456,7 +464,7 @@ const Friends = () => {
                                     if (req) rejectFriendRequest(req.id);
                                 } : null}
                                 onRemoveFriend={() => removeFriend(profile.id)}
-                                onViewProfile={() => setSelectedUserId(profile.id)}
+                                onViewProfile={() => openProfile(profile.id)}
                             />
                         ))}
                     </div>
@@ -484,7 +492,7 @@ const Friends = () => {
                                     profile={friend}
                                     isFriend={true}
                                     onRemoveFriend={() => removeFriend(friend.id)}
-                                    onViewProfile={() => setSelectedUserId(friend.id)}
+                                    onViewProfile={() => openProfile(friend.id)}
                                     onStartDM={() => startDM(friend.id)}
                                 />
                             ))}
@@ -514,7 +522,7 @@ const Friends = () => {
                                     profile={req.profiles}
                                     onAccept={() => acceptFriendRequest(req.id)}
                                     onReject={() => rejectFriendRequest(req.id)}
-                                    onViewProfile={() => setSelectedUserId(req.profiles.id)}
+                                    onViewProfile={() => openProfile(req.profiles.id)}
                                     type="received"
                                 />
                             ))}
@@ -542,7 +550,7 @@ const Friends = () => {
                                     key={req.id}
                                     profile={req.profiles}
                                     onCancel={() => cancelRequest(req.id)}
-                                    onViewProfile={() => setSelectedUserId(req.profiles.id)}
+                                    onViewProfile={() => openProfile(req.profiles.id)}
                                     type="sent"
                                 />
                             ))}
@@ -560,7 +568,8 @@ const Friends = () => {
             <ProfileSummaryModal
                 userId={selectedUserId}
                 isOpen={!!selectedUserId}
-                onClose={() => setSelectedUserId(null)}
+                onClose={() => { setSelectedUserId(null); setAnchorPos(null); }}
+                anchorPos={anchorPos}
             />
         </div>
     );

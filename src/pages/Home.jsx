@@ -21,6 +21,8 @@ const Home = () => {
     const [activeUsers, setActiveUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const [anchorPos, setAnchorPos] = useState(null);
+    const openProfile = (e, id) => { setSelectedUserId(id); setAnchorPos({ x: e.clientX, y: e.clientY }); };
     const [topUsers, setTopUsers] = useState([]);
     const [myStats, setMyStats] = useState(null);
     const [equippedDetails, setEquippedDetails] = useState({});
@@ -809,7 +811,7 @@ const Home = () => {
                                 <motion.div
                                     key={u.id}
                                     whileHover={{ scale: 1.02, translateX: 4 }}
-                                    onClick={() => setSelectedUserId(u.id)}
+                                    onClick={(e) => openProfile(e, u.id)}
                                     style={{
                                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                         padding: '12px 14px', borderRadius: '14px',
@@ -1019,7 +1021,7 @@ const Home = () => {
                         activeUsers.map((profile) => (
                             <div
                                 key={profile.id}
-                                onClick={() => setSelectedUserId(profile.id)}
+                                onClick={(e) => openProfile(e, profile.id)}
                                 style={{ textAlign: 'center', cursor: 'pointer' }}
                             >
                                 <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -1100,7 +1102,8 @@ const Home = () => {
             <ProfileSummaryModal
                 userId={selectedUserId}
                 isOpen={!!selectedUserId}
-                onClose={() => setSelectedUserId(null)}
+                onClose={() => { setSelectedUserId(null); setAnchorPos(null); }}
+                anchorPos={anchorPos}
             />
 
             <style>{`

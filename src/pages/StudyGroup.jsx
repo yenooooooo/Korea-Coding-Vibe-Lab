@@ -29,6 +29,14 @@ const StudyGroup = () => {
     const [isEditingGroup, setIsEditingGroup] = useState(false);
     const [editForm, setEditForm] = useState({ title: '', description: '', tech_tags: '', open_chat_url: '', max_members: 4 });
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const [anchorPos, setAnchorPos] = useState(null);
+    const lastMousePos = React.useRef({ x: 0, y: 0 });
+    React.useEffect(() => {
+        const handler = (e) => { lastMousePos.current = { x: e.clientX, y: e.clientY }; };
+        window.addEventListener('mousemove', handler);
+        return () => window.removeEventListener('mousemove', handler);
+    }, []);
+    const openProfile = (id) => { setSelectedUserId(id); setAnchorPos({ ...lastMousePos.current }); };
     const { joinRoom, isJoined, currentGroupId } = useFocusCam();
 
     useEffect(() => {
@@ -373,7 +381,7 @@ const StudyGroup = () => {
                         <div
                             key={u.user_id}
                             title={u.vibe_status}
-                            onClick={() => setSelectedUserId(u.user_id)}
+                            onClick={() => openProfile(u.user_id)}
                             style={{ textAlign: 'center', minWidth: '80px', cursor: 'pointer' }}
                         >
                             <div style={{
@@ -462,7 +470,7 @@ const StudyGroup = () => {
                                 {getStatusBadge(group.id, group.owner_id)}
                             </div>
                             <div
-                                onClick={(e) => { e.stopPropagation(); setSelectedUserId(group.owner_id); }}
+                                onClick={(e) => { e.stopPropagation(); openProfile(group.owner_id); }}
                                 style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
                             >
                                 {group.profiles?.avatar_url && (
@@ -557,7 +565,7 @@ const StudyGroup = () => {
                                         <>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                                                 <div
-                                                    onClick={() => setSelectedUserId(selectedGroup.owner_id)}
+                                                    onClick={() => openProfile(selectedGroup.owner_id)}
                                                     style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                                                 >
                                                     {selectedGroup.profiles?.avatar_url && (
@@ -676,7 +684,7 @@ const StudyGroup = () => {
                                         {/* 방장 */}
                                         <div style={{ ...memberRowStyle, background: 'rgba(234, 179, 8, 0.05)' }}>
                                             <div
-                                                onClick={() => setSelectedUserId(selectedGroup.owner_id)}
+                                                onClick={() => openProfile(selectedGroup.owner_id)}
                                                 style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
                                             >
                                                 {selectedGroup.profiles?.avatar_url ? (
@@ -696,7 +704,7 @@ const StudyGroup = () => {
                                         {groupMembers.map((member) => (
                                             <div key={member.id} style={memberRowStyle}>
                                                 <div
-                                                    onClick={() => setSelectedUserId(member.user_id)}
+                                                    onClick={() => openProfile(member.user_id)}
                                                     style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
                                                 >
                                                     {member.profiles?.avatar_url ? (
@@ -734,7 +742,7 @@ const StudyGroup = () => {
                                             {pendingRequests.map((req) => (
                                                 <div key={req.id} style={{ ...memberRowStyle, background: 'rgba(251, 146, 60, 0.05)' }}>
                                                     <div
-                                                        onClick={() => setSelectedUserId(req.user_id)}
+                                                        onClick={() => openProfile(req.user_id)}
                                                         style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
                                                     >
                                                         {req.profiles?.avatar_url ? (
@@ -911,7 +919,8 @@ const StudyGroup = () => {
             <ProfileSummaryModal
                 userId={selectedUserId}
                 isOpen={!!selectedUserId}
-                onClose={() => setSelectedUserId(null)}
+                onClose={() => { setSelectedUserId(null); setAnchorPos(null); }}
+                anchorPos={anchorPos}
             />
         </div >
     );
