@@ -126,12 +126,12 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
             borderColor: '#ec4899',
             items: [
                 { name: t('sidebar.quest') || '퀘스트 (Quest)', path: '/quest', icon: <Target size={18} /> },
-                { name: t('sidebar.vibe.shop'), path: '/shop', icon: <ShoppingBag size={18} /> },
-                { name: t('sidebar.season.pass'), path: '/season-pass', icon: <Ticket size={18} /> },
+                { name: t('sidebar.vibe.shop'), path: '/shop', icon: <ShoppingBag size={18} />, adminOnly: true },
+                { name: t('sidebar.season.pass'), path: '/season-pass', icon: <Ticket size={18} />, adminOnly: true },
                 { name: t('sidebar.inventory'), path: '/inventory', icon: <Backpack size={18} /> },
-                { name: t('sidebar.vibe.market'), path: '/market', icon: <Store size={18} /> },
-                { name: t('sidebar.mentor'), path: '/mentor', icon: <Users2 size={18} /> },
-                { name: t('sidebar.mentor.booking') || '멘토 예약 (Booking)', path: '/mentor-booking', icon: <Calendar size={18} /> },
+                { name: t('sidebar.vibe.market'), path: '/market', icon: <Store size={18} />, adminOnly: true },
+                { name: t('sidebar.mentor'), path: '/mentor', icon: <Users2 size={18} />, adminOnly: true },
+                { name: t('sidebar.mentor.booking') || '멘토 예약 (Booking)', path: '/mentor-booking', icon: <Calendar size={18} />, adminOnly: true },
                 { name: t('sidebar.ai.study'), path: '/ai-study', icon: <Lightbulb size={18} /> },
                 { name: t('sidebar.diagnosis'), path: '/diagnosis', icon: <Microscope size={18} /> },
                 { name: t('sidebar.challenge'), path: '/challenge', icon: <Award size={18} /> },
@@ -536,7 +536,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                                             {category.title}
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            {category.items.map((item) => (
+                                            {category.items.filter(item => !item.adminOnly || isAdmin(profile)).map((item) => (
                                                 <NavLink
                                                     key={item.path}
                                                     to={item.path}
