@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 
 const SignUp = () => {
     const [email, setEmail] = useState('')
@@ -10,6 +11,7 @@ const SignUp = () => {
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(false)
     const { signUp, signInWithOAuth } = useAuth()
+    const { success } = useToast()
     const navigate = useNavigate()
 
     const handleSubmit = async (e) => {
@@ -35,7 +37,7 @@ const SignUp = () => {
             }
             setLoading(false)
         } else {
-            alert("계정이 생성되었습니다! 로그인 해주세요.")
+            success('계정이 생성되었습니다! 이메일을 확인 후 로그인해주세요.', 6000)
             navigate('/login')
         }
     }
