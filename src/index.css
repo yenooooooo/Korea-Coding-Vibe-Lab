@@ -5,6 +5,10 @@
     --text-light: #f8fafc;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
@@ -12,4 +16,29 @@ body {
     color: var(--text-light);
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.4rem !important;
+    }
+    h2 {
+        font-size: 1.2rem !important;
+    }
+    /* 테이블, 그리드 등 가로 스크롤 방지 */
+    table, .grid {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    /* 이미지 반응형 */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+    /* 입력 필드 모바일 최적화 (iOS 줌 방지) */
+    input, textarea, select {
+        font-size: 16px !important;
+    }
 }

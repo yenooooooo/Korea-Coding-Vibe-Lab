@@ -10,7 +10,7 @@ import { fetchEquippedDetails } from '../utils/vibeItems.jsx';
 import { supabase } from '../lib/supabase';
 import LivePresenceIsland from './LivePresenceIsland';
 
-const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 0, onNotificationClick = () => { } }) => {
+const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 0, onNotificationClick = () => { }, isMobile = false }) => {
     // CSS 애니메이션 스타일 추가
     React.useEffect(() => {
         const style = document.createElement('style');
@@ -236,7 +236,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
 
     return (
         <>
-            {/* 기본 상태: 아이콘 전용 (60px) */}
+            {/* 기본 상태: 아이콘 전용 (60px) - 모바일에서는 숨김 */}
             <aside style={{
                 width: '60px',
                 height: '100vh',
@@ -245,7 +245,7 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
                 top: 0,
                 background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(15, 23, 42, 1) 100%)',
                 borderRight: '1px solid rgba(255, 255, 255, 0.03)',
-                display: 'flex',
+                display: isMobile ? 'none' : 'flex',
                 flexDirection: 'column',
                 padding: '16px 8px',
                 boxSizing: 'border-box',

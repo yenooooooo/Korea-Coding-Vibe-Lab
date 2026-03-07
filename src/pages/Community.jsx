@@ -23,12 +23,15 @@ const Community = () => {
             {/* Tab Navigation */}
             <div style={{
                 display: 'flex',
-                gap: '8px',
+                gap: '6px',
                 marginBottom: '20px',
-                padding: '8px',
+                padding: '6px',
                 background: 'rgba(30, 41, 59, 0.5)',
                 borderRadius: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.05)'
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
             }}>
                 {tabs.map((tab) => (
                     <button
@@ -36,12 +39,13 @@ const Community = () => {
                         onClick={() => !tab.disabled && setActiveTab(tab.id)}
                         disabled={tab.disabled}
                         style={{
-                            flex: 1,
+                            flex: '0 0 auto',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '8px',
-                            padding: '12px 16px',
+                            gap: '6px',
+                            padding: '10px 14px',
+                            whiteSpace: 'nowrap',
                             background: activeTab === tab.id ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
                             border: activeTab === tab.id ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid transparent',
                             borderRadius: '12px',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Megaphone, X, Vote, CheckCircle2 } from 'lucide-react';
+import { Megaphone, X, Vote, CheckCircle2, Home, MessageSquare, Bell, User, Code2 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import GlobalBanner from '../components/GlobalBanner';
 import AdminEntryToast from '../components/AdminEntryToast';
@@ -13,10 +13,19 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { getExcludedNotificationTypes } from '../lib/notifications';
+import useIsMobile from '../hooks/useIsMobile';
+
+const mobileNavBtnStyle = {
+    background: 'transparent', border: 'none', color: '#94a3b8',
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    gap: '2px', cursor: 'pointer', padding: '6px 12px', fontSize: '1rem',
+};
+const mobileNavLabelStyle = { fontSize: '0.6rem', fontWeight: 500 };
 
 const MainLayout = () => {
     const { user } = useAuth();
     const { themeColors } = useTheme();
+    const isMobile = useIsMobile();
     const location = useLocation();
     const [isNavOpen, setIsNavOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -311,22 +320,76 @@ const MainLayout = () => {
                     onToggle={() => setIsNavOpen(!isNavOpen)}
                     notificationCount={unreadNotificationCount}
                     onNotificationClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                    isMobile={isMobile}
                 />
+                {/* 모바일 하단 바 */}
+                {isMobile && (
+                    <div style={{
+                        position: 'fixed', bottom: 0, left: 0, right: 0,
+                        height: '56px',
+                        background: 'rgba(15, 23, 42, 0.98)',
+                        borderTop: '1px solid rgba(255,255,255,0.05)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-around',
+                        zIndex: 50,
+                        backdropFilter: 'blur(12px)',
+                        padding: '0 8px',
+                    }}>
+                        <button onClick={() => { window.location.href = '/'; }} style={mobileNavBtnStyle}>
+                            <Home size={20} /><span style={mobileNavLabelStyle}>홈</span>
+                        </button>
+                        <button onClick={() => { window.location.href = '/community'; }} style={mobileNavBtnStyle}>
+                            <MessageSquare size={20} /><span style={mobileNavLabelStyle}>커뮤니티</span>
+                        </button>
+                        <button onClick={() => setIsNavOpen(!isNavOpen)} style={{
+                            ...mobileNavBtnStyle,
+                            background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                            borderRadius: '50%',
+                            width: '44px', height: '44px',
+                            marginTop: '-12px',
+                            boxShadow: '0 0 16px rgba(99,102,241,0.4)',
+                        }}>
+                            <Code2 size={22} />
+                        </button>
+                        <button onClick={() => setIsNotificationOpen(!isNotificationOpen)} style={{
+                            ...mobileNavBtnStyle,
+                            position: 'relative',
+                        }}>
+                            <Bell size={20} />
+                            <span style={mobileNavLabelStyle}>알림</span>
+                            {unreadNotificationCount > 0 && (
+                                <div style={{
+                                    position: 'absolute', top: '2px', right: '12px',
+                                    minWidth: '16px', height: '16px', borderRadius: '50%',
+                                    background: '#ef4444', fontSize: '0.6rem', fontWeight: 'bold',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: '#fff',
+                                }}>{unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}</div>
+                            )}
+                        </button>
+                        <button onClick={() => { window.location.href = user ? '/profile' : '/login'; }} style={mobileNavBtnStyle}>
+                            <User size={20} /><span style={mobileNavLabelStyle}>{user ? '프로필' : '로그인'}</span>
+                        </button>
+                    </div>
+                )}
                 <div style={{
-                    marginLeft: '60px',
+                    marginLeft: isMobile ? 0 : '60px',
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
-                    width: 'auto', // Fix horizontal scroll issue
+                    width: 'auto',
                     transition: 'margin-left 0.3s ease',
+                    paddingBottom: isMobile ? '56px' : 0,
                 }}>
                     <GlobalBanner />
                     <main style={{
                         flex: 1,
-                        padding: '40px',
+                        padding: isMobile ? '16px 12px' : '40px',
                         width: '100%',
-                        maxWidth: '1280px', // Global max width constraint
-                        margin: '0 auto'    // Center content
+                        maxWidth: '1280px',
+                        margin: '0 auto',
+                        boxSizing: 'border-box',
                     }}>
                         <Outlet />
                     </main>
