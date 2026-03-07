@@ -126,10 +126,10 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
             borderColor: '#ec4899',
             items: [
                 { name: t('sidebar.quest') || '퀘스트 (Quest)', path: '/quest', icon: <Target size={18} /> },
-                { name: t('sidebar.vibe.shop'), path: '/shop', icon: <ShoppingBag size={18} />, adminOnly: true },
+                { name: t('sidebar.vibe.shop'), path: '/shop', icon: <ShoppingBag size={18} /> },
                 { name: t('sidebar.season.pass'), path: '/season-pass', icon: <Ticket size={18} />, adminOnly: true },
                 { name: t('sidebar.inventory'), path: '/inventory', icon: <Backpack size={18} /> },
-                { name: t('sidebar.vibe.market'), path: '/market', icon: <Store size={18} />, adminOnly: true },
+                { name: t('sidebar.vibe.market'), path: '/market', icon: <Store size={18} /> },
                 { name: t('sidebar.mentor'), path: '/mentor', icon: <Users2 size={18} />, adminOnly: true },
                 { name: t('sidebar.mentor.booking') || '멘토 예약 (Booking)', path: '/mentor-booking', icon: <Calendar size={18} />, adminOnly: true },
                 { name: t('sidebar.ai.study'), path: '/ai-study', icon: <Lightbulb size={18} /> },
