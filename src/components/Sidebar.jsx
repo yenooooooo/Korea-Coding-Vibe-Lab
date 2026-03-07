@@ -100,21 +100,23 @@ const Sidebar = ({ isNavOpen = false, onToggle = () => { }, notificationCount = 
             items: [
                 { name: t('sidebar.home'), path: '/', icon: <Home size={18} /> },
                 { name: t('sidebar.lounge'), path: '/community', icon: <MessageSquare size={18} /> },
+                { name: t('sidebar.ranking'), path: '/ranking', icon: <Trophy size={18} /> },
                 { name: t('sidebar.about'), path: '/about', icon: <Info size={18} /> },
             ]
         },
-        {
-            id: 'battle',
-            title: t('sidebar.battle'),
-            icon: <Swords size={24} />,
-            color: '#f59e0b',
-            bgColor: 'rgba(245, 158, 11, 0.1)',
-            borderColor: '#f59e0b',
-            items: [
-                { name: t('sidebar.arena'), path: '/battle', icon: <Swords size={18} /> },
-                { name: t('sidebar.ranking') || '랭킹 (Ranking)', path: '/ranking', icon: <Trophy size={18} /> },
-            ]
-        },
+        // 배틀 아레나: 유저 증가 후 활성화 예정
+        // {
+        //     id: 'battle',
+        //     title: t('sidebar.battle'),
+        //     icon: <Swords size={24} />,
+        //     color: '#f59e0b',
+        //     bgColor: 'rgba(245, 158, 11, 0.1)',
+        //     borderColor: '#f59e0b',
+        //     items: [
+        //         { name: t('sidebar.arena'), path: '/battle', icon: <Swords size={18} /> },
+        //         { name: t('sidebar.ranking'), path: '/ranking', icon: <Trophy size={18} /> },
+        //     ]
+        // },
         {
             id: 'growth',
             title: t('sidebar.growth'),

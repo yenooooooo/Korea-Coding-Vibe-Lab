@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { MessageSquare, Sprout, Zap, LifeBuoy, MessageCircle, HelpCircle } from 'lucide-react';
+import { MessageSquare, Sprout, LifeBuoy, MessageCircle, HelpCircle } from 'lucide-react';
 import VibeLoungeTab from '../components/VibeLoungeTab';
 import DebugForest from '../components/DebugForest';
-import VibeVS from '../components/VibeVS';
 import CodeSOS from '../components/CodeSOS';
 import VibeSquare from '../components/VibeSquare';
 
@@ -13,7 +12,6 @@ const Community = () => {
         { id: 'square', label: '바이브 스퀘어', icon: <MessageCircle size={18} />, emoji: '🏘️' },
         { id: 'lounge', label: '라운지', icon: <MessageSquare size={18} />, emoji: '💬' },
         { id: 'forest', label: '대나무숲', icon: <Sprout size={18} />, emoji: '🎋' },
-        { id: 'vs', label: 'VS 게임', icon: <Zap size={18} />, emoji: '🔥' },
         { id: 'sos', label: '코드 SOS', icon: <LifeBuoy size={18} />, emoji: '🆘' },
         { id: 'beginner', label: '초보 Q&A', icon: <HelpCircle size={18} />, emoji: '🌱' }
     ];
@@ -67,7 +65,6 @@ const Community = () => {
                 {activeTab === 'square' && <VibeSquare />}
                 {activeTab === 'lounge' && <VibeLoungeTab />}
                 {activeTab === 'forest' && <DebugForest />}
-                {activeTab === 'vs' && <VibeVS />}
                 {activeTab === 'sos' && <CodeSOS />}
                 {activeTab === 'beginner' && <VibeSquare defaultCategory="beginner" />}
             </div>
