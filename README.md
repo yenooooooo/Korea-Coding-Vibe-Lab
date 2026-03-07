@@ -4,7 +4,7 @@
 
 Korea Coding Vibe Lab은 코딩 학습자들이 멘토링, 커뮤니티, AI 지원을 통해 함께 성장하는 공간입니다.
 
----
+--- 
 
 ## 🚀 시작하기 (Getting Started)
 
