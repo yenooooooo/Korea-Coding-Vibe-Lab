@@ -256,8 +256,8 @@ const ProfileSummaryModal = ({ userId, isOpen, onClose, anchorPos }) => {
                                                     width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden',
                                                     position: 'relative'
                                                 }}>
-                                                    {equippedDetails.avatar ? (
-                                                        <img src={equippedDetails.avatar.icon_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    {equippedDetails.avatar?.item_data?.emoji ? (
+                                                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>{equippedDetails.avatar.item_data.emoji}</div>
                                                     ) : profile.avatar_url ? (
                                                         <img
                                                             src={profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.email}`}

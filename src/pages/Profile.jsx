@@ -269,8 +269,8 @@ const Profile = () => {
                             position: 'relative',
                             zIndex: 10
                         }}>
-                            {equippedDetails.avatar?.item_data?.icon ? (
-                                <div style={{ fontSize: '4rem' }}>{equippedDetails.avatar.item_data.icon}</div>
+                            {equippedDetails.avatar?.item_data?.emoji ? (
+                                <div style={{ fontSize: '4rem' }}>{equippedDetails.avatar.item_data.emoji}</div>
                             ) : profile?.avatar_url ? (
                                 <img
                                     src={profile.avatar_url}
