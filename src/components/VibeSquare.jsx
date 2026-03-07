@@ -369,9 +369,9 @@ const PostCard = ({ post, onClick, isCurrentAdmin, onTogglePin, equippedItem }) 
                             position: 'relative',
                             boxShadow: equippedItem?.avatar ? '0 0 10px rgba(168, 85, 247, 0.4)' : 'none'
                         }}>
-                        {equippedItem?.avatar ? (
-                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <img src={equippedItem.avatar.icon_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {equippedItem?.avatar?.item_data?.emoji ? (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>
+                                {equippedItem.avatar.item_data.emoji}
                             </div>
                         ) : post.profiles?.avatar_url
                             ? <img src={post.profiles.avatar_url} style={{ width: '100%', height: '100%' }} />

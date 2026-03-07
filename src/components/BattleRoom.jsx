@@ -429,8 +429,8 @@ const BattleRoom = ({ room, onRoomUpdate }) => {
                                         margin: '0 auto 8px',
                                         overflow: 'hidden'
                                     }}>
-                                        {equippedDetails[room.host_id]?.avatar ? (
-                                            <img src={equippedDetails[room.host_id].avatar.icon_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        {equippedDetails[room.host_id]?.avatar?.item_data?.emoji ? (
+                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>{equippedDetails[room.host_id].avatar.item_data.emoji}</div>
                                         ) : room.host_ready
                                             ? <Check size={32} color="#22c55e" />
                                             : <Clock size={32} color="#64748b" />}
@@ -457,8 +457,8 @@ const BattleRoom = ({ room, onRoomUpdate }) => {
                                         margin: '0 auto 8px',
                                         overflow: 'hidden'
                                     }}>
-                                        {equippedDetails[room.guest_id]?.avatar ? (
-                                            <img src={equippedDetails[room.guest_id].avatar.icon_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        {equippedDetails[room.guest_id]?.avatar?.item_data?.emoji ? (
+                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>{equippedDetails[room.guest_id].avatar.item_data.emoji}</div>
                                         ) : room.guest_ready
                                             ? <Check size={32} color="#22c55e" />
                                             : <Clock size={32} color="#64748b" />}

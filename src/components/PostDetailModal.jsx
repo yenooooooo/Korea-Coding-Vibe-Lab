@@ -220,8 +220,8 @@ const PostDetailModal = ({ post, onClose, refresh, onEdit, onDelete }) => {
                                         ...(isAdmin(post.profiles) ? { border: '2px solid #a855f7' } : {}),
                                     }}
                                 >
-                                    {authorEquipped?.avatar ? (
-                                        <img src={authorEquipped.avatar.icon_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    {authorEquipped?.avatar?.item_data?.emoji ? (
+                                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>{authorEquipped.avatar.item_data.emoji}</div>
                                     ) : post.profiles?.avatar_url
                                         ? <img src={post.profiles.avatar_url} style={{ width: '100%', height: '100%' }} />
                                         : <User size={24} color="#94a3b8" style={{ margin: '8px' }} />}
@@ -365,8 +365,8 @@ const CommentItem = ({ comment, replies, onReply, currentUser, onUpdate, onDelet
                             ...(commentIsAdmin ? { border: '2px solid #a855f7' } : {}),
                         }}
                     >
-                        {equippedItem?.avatar ? (
-                            <img src={equippedItem.avatar.icon_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {equippedItem?.avatar?.item_data?.emoji ? (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>{equippedItem.avatar.item_data.emoji}</div>
                         ) : comment.profiles?.avatar_url
                             ? <img src={comment.profiles.avatar_url} style={{ width: '100%', height: '100%' }} />
                             : <User size={18} color="#94a3b8" style={{ margin: '7px' }} />}

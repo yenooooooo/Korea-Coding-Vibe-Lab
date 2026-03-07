@@ -746,8 +746,8 @@ const MessageBubble = ({
                             transition: 'border-color 0.3s',
                         }}
                     >
-                        {equippedItem?.avatar ? (
-                            <img src={equippedItem.avatar.icon_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {equippedItem?.avatar?.item_data?.emoji ? (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>{equippedItem.avatar.item_data.emoji}</div>
                         ) : msg.profiles?.avatar_url ? (
                             <img src={msg.profiles.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
