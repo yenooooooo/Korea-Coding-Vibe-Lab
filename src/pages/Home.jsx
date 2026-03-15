@@ -823,8 +823,8 @@ const Home = () => {
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                         <span style={{ fontSize: '1.2rem' }}>{medals[index]}</span>
-                                        {equippedDetails[u.id]?.avatar ? (
-                                            <img src={equippedDetails[u.id].avatar.icon_url} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} />
+                                        {equippedDetails[u.id]?.avatar?.item_data?.emoji ? (
+                                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', background: '#1e293b' }}>{equippedDetails[u.id].avatar.item_data.emoji}</div>
                                         ) : u.avatar_url ? (
                                             <img src={u.avatar_url} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} />
                                         ) : (
@@ -1030,8 +1030,8 @@ const Home = () => {
                                         border: '2px solid rgba(255,255,255,0.1)', cursor: 'pointer', transition: 'all 0.2s',
                                         boxShadow: equippedDetails[profile.id]?.avatar ? '0 0 10px rgba(99, 102, 241, 0.4)' : 'none'
                                     }}>
-                                        {equippedDetails[profile.id]?.avatar ? (
-                                            <img src={equippedDetails[profile.id].avatar.icon_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        {equippedDetails[profile.id]?.avatar?.item_data?.emoji ? (
+                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', background: '#1e293b' }}>{equippedDetails[profile.id].avatar.item_data.emoji}</div>
                                         ) : (
                                             <img
                                                 src={profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.email}`}

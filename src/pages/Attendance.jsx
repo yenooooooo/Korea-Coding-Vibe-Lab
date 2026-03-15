@@ -602,9 +602,9 @@ const Attendance = () => {
                                     }}>
                                         {index + 1}
                                     </div>
-                                    {leaderboardDetails[user.id]?.avatar ? (
-                                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', overflow: 'hidden' }}>
-                                            <img src={leaderboardDetails[user.id].avatar.icon_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    {leaderboardDetails[user.id]?.avatar?.item_data?.emoji ? (
+                                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', background: '#1e293b' }}>
+                                            {leaderboardDetails[user.id].avatar.item_data.emoji}
                                         </div>
                                     ) : user.avatar_url ? (
                                         <img src={user.avatar_url} alt="Profile" style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
