@@ -45,48 +45,29 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        let resolved = false;
-
-        // Safety timeout: 8초 후에도 응답 없으면 세션 정리 후 로그인 화면으로
-        const safetyTimer = setTimeout(async () => {
-            if (resolved) return;
-            resolved = true;
-            console.warn('Auth loading timeout - clearing stale session');
-            await supabase.auth.signOut().catch(() => {});
-            setUser(null);
-            setProfile(null);
-            setLoading(false);
-        }, 8000);
-
-        // Check active session on mount
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            if (resolved) return; // 타이머가 이미 처리함
-            resolved = true;
-            clearTimeout(safetyTimer);
-            setUser(session?.user ?? null);
-            if (session?.user) await fetchProfile(session.user.id);
-            setLoading(false);
-        }).catch(async (err) => {
-            if (resolved) return;
-            resolved = true;
-            clearTimeout(safetyTimer);
-            console.error('getSession failed:', err);
-            await supabase.auth.signOut().catch(() => {});
-            setUser(null);
-            setProfile(null);
-            setLoading(false);
-        })
-
-        // Listen for auth changes (로그인/로그아웃 이벤트)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            setUser(session?.user ?? null)
+        // onAuthStateChange가 INITIAL_SESSION으로 처리하므로 이것만으로 충분
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (session?.user) {
+                setUser(session.user);
                 await fetchProfile(session.user.id);
             } else {
+                setUser(null);
                 setProfile(null);
             }
-            setLoading(false)
+            setLoading(false);
         })
+
+        // Safety timeout: onAuthStateChange가 아예 안 오는 경우만 대비
+        const safetyTimer = setTimeout(() => {
+            setLoading(prev => {
+                if (prev) {
+                    console.warn('Auth timeout - rendering without session');
+                    setUser(null);
+                    setProfile(null);
+                }
+                return false;
+            });
+        }, 6000);
 
         return () => {
             clearTimeout(safetyTimer);
@@ -144,14 +125,11 @@ export const AuthProvider = ({ children }) => {
     }
 
     const signOut = async () => {
-        try {
-            await supabase.auth.signOut();
-        } catch (err) {
-            console.warn('signOut API failed, clearing locally:', err);
-        }
-        // 토큰 무효 상태에서도 확실히 로컬 세션 정리
+        // 로컬 상태를 먼저 즉시 정리 (네트워크 차단되어도 UI 즉시 반영)
         setUser(null);
         setProfile(null);
+        // 네트워크 없이 localStorage만 정리 (hang 방지)
+        supabase.auth.signOut({ scope: 'local' }).catch(() => {});
     }
 
     const value = {
