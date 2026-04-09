@@ -233,7 +233,8 @@ const VibeShop = () => {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(min(180px, 100%), 1fr))',
                     gap: '12px',
-                    paddingBottom: '20px'
+                    paddingBottom: '20px',
+                    alignContent: 'start'
                 }}>
                     {filteredItems.map((item) => {
                         const owned = isOwned(item.id);
