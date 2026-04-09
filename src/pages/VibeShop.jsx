@@ -133,52 +133,56 @@ const VibeShop = () => {
             <div style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
                 {/* Header */}
                 <div style={{
-                    background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(139, 92, 246, 0.1))',
-                    borderRadius: '20px',
-                    padding: '24px',
-                    marginBottom: '20px',
-                    border: '1px solid rgba(168, 85, 247, 0.2)',
+                    background: 'rgba(30, 41, 59, 0.5)',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    marginBottom: '16px',
+                    border: '1px solid rgba(168, 85, 247, 0.15)',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '12px'
                 }}>
-                    <div>
-                        <h1 style={{ margin: '0 0 8px 0', fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            🛍️ Vibe Shop
-                        </h1>
-                        <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.9rem' }}>
-                            포인트로 나만의 개발자 캐릭터를 꾸며보세요!
-                        </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '1.5rem' }}>🛍️</span>
+                        <div>
+                            <h1 style={{ margin: 0, fontSize: '1.3rem' }}>Vibe Shop</h1>
+                            <p style={{ margin: 0, color: '#64748b', fontSize: '0.78rem' }}>포인트로 캐릭터를 꾸며보세요</p>
+                        </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <button
                             onClick={() => setShowInventory(true)}
                             style={{
-                                background: 'rgba(99, 102, 241, 0.2)',
-                                border: '1px solid rgba(99, 102, 241, 0.4)',
-                                borderRadius: '12px',
-                                padding: '10px 20px',
+                                background: 'rgba(99, 102, 241, 0.12)',
+                                border: '1px solid rgba(99, 102, 241, 0.25)',
+                                borderRadius: '10px',
+                                padding: '8px 14px',
                                 color: '#a5b4fc',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '8px',
-                                fontSize: '0.9rem',
-                                fontWeight: 'bold'
+                                gap: '6px',
+                                fontSize: '0.8rem',
+                                fontWeight: '600'
                             }}
                         >
-                            <Package size={18} /> 내 인벤토리
+                            <Package size={15} /> 인벤토리
                         </button>
                         <div style={{
-                            background: 'rgba(168, 85, 247, 0.2)',
-                            borderRadius: '16px',
-                            padding: '12px 24px',
-                            border: '1px solid rgba(168, 85, 247, 0.3)'
+                            background: 'rgba(168, 85, 247, 0.12)',
+                            borderRadius: '10px',
+                            padding: '8px 16px',
+                            border: '1px solid rgba(168, 85, 247, 0.2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
                         }}>
-                            <div style={{ fontSize: '0.8rem', color: '#c4b5fd', marginBottom: '4px' }}>보유 포인트</div>
-                            <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#a78bfa' }}>
-                                {profile?.points || 0} P
-                            </div>
+                            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>보유</span>
+                            <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#a78bfa' }}>
+                                {(profile?.points || 0).toLocaleString()} P
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -186,194 +190,157 @@ const VibeShop = () => {
                 {/* Category Tabs */}
                 <div style={{
                     display: 'flex',
-                    gap: '8px',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    background: 'rgba(30, 41, 59, 0.5)',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.05)'
+                    gap: '6px',
+                    marginBottom: '14px',
+                    padding: '5px',
+                    background: 'rgba(30, 41, 59, 0.4)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.04)',
+                    overflowX: 'auto',
+                    scrollbarWidth: 'none'
                 }}>
                     {categories.map((cat) => (
                         <button
                             key={cat.id}
                             onClick={() => setActiveCategory(cat.id)}
                             style={{
-                                flex: 1,
+                                flex: '0 0 auto',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                padding: '12px',
-                                background: activeCategory === cat.id ? 'rgba(168, 85, 247, 0.2)' : 'transparent',
-                                border: activeCategory === cat.id ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid transparent',
-                                borderRadius: '12px',
-                                color: activeCategory === cat.id ? '#c4b5fd' : '#94a3b8',
+                                gap: '6px',
+                                padding: '8px 14px',
+                                background: activeCategory === cat.id ? 'rgba(168, 85, 247, 0.18)' : 'transparent',
+                                border: activeCategory === cat.id ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid transparent',
+                                borderRadius: '9px',
+                                color: activeCategory === cat.id ? '#c4b5fd' : '#64748b',
                                 cursor: 'pointer',
-                                fontSize: '0.9rem',
-                                fontWeight: activeCategory === cat.id ? 'bold' : 'normal',
-                                transition: 'all 0.2s'
+                                fontSize: '0.82rem',
+                                fontWeight: activeCategory === cat.id ? '700' : '500',
+                                transition: 'all 0.2s',
+                                whiteSpace: 'nowrap'
                             }}
                         >
-                            <span style={{ fontSize: '1.2rem' }}>{cat.emoji}</span>
+                            <span style={{ fontSize: '1rem' }}>{cat.emoji}</span>
                             <span>{cat.label}</span>
                         </button>
                     ))}
                 </div>
 
-                {/* Items Grid */}
+                {/* Items Grid — 컴팩트 카드 */}
                 <div style={{
                     flex: 1,
                     overflowY: 'auto',
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                    gap: '16px',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(180px, 100%), 1fr))',
+                    gap: '12px',
                     paddingBottom: '20px'
                 }}>
                     {filteredItems.map((item) => {
                         const owned = isOwned(item.id);
                         const canAfford = (profile?.points || 0) >= item.price;
-                        const isPremium = item.price >= 1500; // Premium items (1500P+)
-                        const isLegendary = item.price >= 2000; // Legendary items (2000P+)
-
+                        const isPremium = item.price >= 1500;
+                        const isLegendary = item.price >= 2000;
                         const currentLevel = getVibeLevel(profile?.total_points || 0).level;
                         const isLocked = currentLevel < (item.min_level || 1);
 
+                        const accentColor = owned ? '#22c55e' : isLegendary ? '#eab308' : isPremium ? '#a855f7' : '#6366f1';
+
                         return (
-                            <motion.div
+                            <div
                                 key={item.id}
-                                whileHover={{ scale: 1.02, translateY: -5 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => setSelectedItem(item)}
+                                onClick={() => !isLocked && setSelectedItem(item)}
                                 style={{
-                                    background: owned
-                                        ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.05))'
-                                        : isLegendary
-                                            ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.1))'
-                                            : isPremium
-                                                ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(139, 92, 246, 0.1))'
-                                                : 'linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.6))',
-                                    borderRadius: '24px',
-                                    padding: '24px',
-                                    border: owned
-                                        ? '2px solid rgba(34, 197, 94, 0.3)'
-                                        : isLegendary
-                                            ? '2px solid rgba(234, 179, 8, 0.5)'
-                                            : isPremium
-                                                ? '2px solid rgba(168, 85, 247, 0.4)'
-                                                : '1px solid rgba(255, 255, 255, 0.05)',
-                                    cursor: owned ? 'default' : 'pointer',
-                                    position: 'relative',
-                                    overflow: 'hidden',
-                                    opacity: 1, // Always visible
-                                    filter: isLocked ? 'grayscale(0.8)' : 'none',
-                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    boxShadow: isLegendary
-                                        ? '0 0 40px rgba(234, 179, 8, 0.2), inset 0 0 20px rgba(234, 179, 8, 0.1)'
-                                        : isPremium
-                                            ? '0 0 30px rgba(168, 85, 247, 0.15)'
-                                            : 'none'
+                                    background: 'rgba(30, 41, 59, 0.6)',
+                                    borderRadius: '16px',
+                                    padding: '16px',
+                                    border: `1px solid ${accentColor}${owned || isLegendary ? '50' : '20'}`,
+                                    cursor: isLocked ? 'not-allowed' : 'pointer',
+                                    filter: isLocked ? 'grayscale(0.7) brightness(0.6)' : 'none',
+                                    transition: 'border-color 0.2s, transform 0.2s, box-shadow 0.2s',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    position: 'relative'
+                                }}
+                                onMouseOver={(e) => {
+                                    if (!isLocked) {
+                                        e.currentTarget.style.transform = 'translateY(-3px)';
+                                        e.currentTarget.style.borderColor = accentColor + '80';
+                                        e.currentTarget.style.boxShadow = `0 8px 24px ${accentColor}15`;
+                                    }
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.borderColor = `${accentColor}${owned || isLegendary ? '50' : '20'}`;
+                                    e.currentTarget.style.boxShadow = 'none';
                                 }}
                             >
-                                {/* Glow Effect for Legendary */}
-                                {isLegendary && (
-                                    <motion.div
-                                        animate={{
-                                            opacity: [0.3, 0.6, 0.3],
-                                            scale: [1, 1.1, 1],
-                                        }}
-                                        transition={{
-                                            duration: 3,
-                                            repeat: Infinity,
-                                            ease: "easeInOut"
-                                        }}
-                                        style={{
-                                            position: 'absolute',
-                                            top: '-50%',
-                                            left: '-50%',
-                                            width: '200%',
-                                            height: '200%',
-                                            background: 'radial-gradient(circle, rgba(234, 179, 8, 0.1) 0%, transparent 60%)',
-                                            pointerEvents: 'none',
-                                            zIndex: 0
-                                        }}
-                                    />
-                                )}
+                                {/* 상태 뱃지 */}
                                 {owned && (
                                     <div style={{
-                                        position: 'absolute',
-                                        top: '12px',
-                                        right: '12px',
-                                        background: 'rgba(34, 197, 94, 0.2)',
-                                        borderRadius: '50%',
-                                        padding: '6px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        <Check size={16} color="#22c55e" />
-                                    </div>
+                                        position: 'absolute', top: '8px', right: '8px',
+                                        background: 'rgba(34, 197, 94, 0.15)',
+                                        borderRadius: '6px', padding: '2px 6px',
+                                        fontSize: '0.6rem', fontWeight: '800', color: '#4ade80',
+                                        letterSpacing: '0.5px'
+                                    }}>보유</div>
                                 )}
-
                                 {isLegendary && !owned && (
                                     <div style={{
-                                        position: 'absolute',
-                                        top: '12px',
-                                        left: '12px',
-                                        background: 'rgba(234, 179, 8, 0.2)',
-                                        borderRadius: '8px',
-                                        padding: '4px 8px',
-                                        fontSize: '0.7rem',
-                                        fontWeight: 'bold',
-                                        color: '#fbbf24'
+                                        position: 'absolute', top: '8px', left: '8px',
+                                        background: 'rgba(234, 179, 8, 0.15)',
+                                        borderRadius: '6px', padding: '2px 6px',
+                                        fontSize: '0.6rem', fontWeight: '800', color: '#fbbf24',
+                                        letterSpacing: '0.5px'
+                                    }}>LEGENDARY</div>
+                                )}
+                                {isLocked && (
+                                    <div style={{
+                                        position: 'absolute', top: '8px', right: '8px',
+                                        display: 'flex', alignItems: 'center', gap: '3px',
+                                        fontSize: '0.6rem', color: '#64748b'
                                     }}>
-                                        LEGENDARY
+                                        <Lock size={10} /> Lv.{item.min_level}
                                     </div>
                                 )}
 
+                                {/* 이모지 */}
                                 <div style={{
-                                    fontSize: '4rem',
-                                    textAlign: 'center',
-                                    marginBottom: '16px',
-                                    filter: isLegendary ? 'drop-shadow(0 0 10px rgba(234, 179, 8, 0.5))' : isPremium ? 'drop-shadow(0 0 8px rgba(168, 85, 247, 0.4))' : 'none'
+                                    fontSize: '2.2rem',
+                                    lineHeight: 1,
+                                    marginTop: owned || (isLegendary && !owned) || isLocked ? '8px' : '0'
                                 }}>
                                     {item.item_data?.emoji || getCategoryEmoji(item.category)}
                                 </div>
 
-                                <h3 style={{
-                                    margin: '0 0 8px 0',
-                                    fontSize: '1.2rem',
-                                    color: owned ? '#86efac' : isLegendary ? '#fbbf24' : isPremium ? '#c4b5fd' : '#e2e8f0',
-                                    textAlign: 'center'
+                                {/* 이름 */}
+                                <div style={{
+                                    fontSize: '0.85rem',
+                                    fontWeight: '700',
+                                    color: owned ? '#86efac' : '#e2e8f0',
+                                    textAlign: 'center',
+                                    lineHeight: 1.3,
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    width: '100%'
                                 }}>
                                     {item.name}
-                                </h3>
-
-                                <p style={{
-                                    margin: '0 0 16px 0',
-                                    fontSize: '0.85rem',
-                                    color: '#94a3b8',
-                                    textAlign: 'center',
-                                    lineHeight: 1.5
-                                }}>
-                                    {item.description}
-                                </p>
-
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    gap: '8px'
-                                }}>
-                                    {!owned && !canAfford && <Lock size={16} color="#64748b" />}
-                                    <span style={{
-                                        fontSize: '1.5rem',
-                                        fontWeight: 'bold',
-                                        color: owned ? '#22c55e' : isLegendary ? '#fbbf24' : isPremium ? '#a78bfa' : (canAfford ? '#8b5cf6' : '#64748b')
-                                    }}>
-                                        {owned ? 'OWNED' : `${item.price} P`}
-                                    </span>
                                 </div>
-                            </motion.div>
+
+                                {/* 가격 */}
+                                <div style={{
+                                    fontSize: '0.8rem',
+                                    fontWeight: '800',
+                                    color: owned ? '#4ade80' : canAfford ? accentColor : '#475569',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                }}>
+                                    {owned ? '✓ 보유중' : `${item.price.toLocaleString()} P`}
+                                </div>
+                            </div>
                         );
                     })}
 
@@ -381,8 +348,9 @@ const VibeShop = () => {
                         <div style={{
                             gridColumn: '1 / -1',
                             textAlign: 'center',
-                            padding: '60px 20px',
-                            color: '#64748b'
+                            padding: '40px 20px',
+                            color: '#64748b',
+                            fontSize: '0.9rem'
                         }}>
                             이 카테고리에는 아이템이 없습니다.
                         </div>
