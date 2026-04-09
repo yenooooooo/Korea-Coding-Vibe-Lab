@@ -45,34 +45,39 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        // Safety timeout: 5초 후에도 응답 없으면 강제 로딩 해제
-        const safetyTimer = setTimeout(() => {
-            setLoading(prev => {
-                if (prev) console.warn('Auth loading timeout - forcing render');
-                return false;
-            });
-        }, 5000);
+        let resolved = false;
+
+        // Safety timeout: 8초 후에도 응답 없으면 세션 정리 후 로그인 화면으로
+        const safetyTimer = setTimeout(async () => {
+            if (resolved) return;
+            resolved = true;
+            console.warn('Auth loading timeout - clearing stale session');
+            await supabase.auth.signOut().catch(() => {});
+            setUser(null);
+            setProfile(null);
+            setLoading(false);
+        }, 8000);
 
         // Check active session on mount
         supabase.auth.getSession().then(async ({ data: { session } }) => {
+            if (resolved) return; // 타이머가 이미 처리함
+            resolved = true;
             clearTimeout(safetyTimer);
-            setUser(session?.user ?? null)
+            setUser(session?.user ?? null);
             if (session?.user) await fetchProfile(session.user.id);
-            setLoading(false)
+            setLoading(false);
         }).catch(async (err) => {
-            console.error('getSession failed:', err);
-            // Refresh token 무효 시 세션 정리
-            if (err?.message?.includes('Refresh Token') || err?.name === 'AuthApiError') {
-                console.warn('Invalid session detected, clearing...');
-                await supabase.auth.signOut().catch(() => {});
-                setUser(null);
-                setProfile(null);
-            }
+            if (resolved) return;
+            resolved = true;
             clearTimeout(safetyTimer);
+            console.error('getSession failed:', err);
+            await supabase.auth.signOut().catch(() => {});
+            setUser(null);
+            setProfile(null);
             setLoading(false);
         })
 
-        // Listen for auth changes
+        // Listen for auth changes (로그인/로그아웃 이벤트)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             setUser(session?.user ?? null)
             if (session?.user) {
