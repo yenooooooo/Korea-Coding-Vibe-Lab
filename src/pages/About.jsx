@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Brain, Code2, Heart, Users, Zap, ChevronLeft, ChevronRight, CheckCircle, Clock, Target, Trophy, MessageCircle } from 'lucide-react';
 
@@ -534,16 +534,13 @@ const StatBox = ({ label, value, icon }) => (
 );
 
 const FAQItem = ({ faq, isExpanded, onToggle }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+    <div
         style={{
             background: isExpanded ? 'rgba(99, 102, 241, 0.1)' : 'rgba(30, 41, 59, 0.3)',
             border: isExpanded ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(255,255,255,0.05)',
             borderRadius: '16px',
             overflow: 'hidden',
-            transition: 'all 0.3s'
+            transition: 'background 0.3s, border 0.3s'
         }}
     >
         <button
@@ -560,40 +557,32 @@ const FAQItem = ({ faq, isExpanded, onToggle }) => (
                 gap: '12px',
                 fontSize: '1.05rem',
                 fontWeight: '600',
-                textAlign: 'left',
-                transition: 'all 0.3s'
+                textAlign: 'left'
             }}
         >
             <span style={{ fontSize: '1.5rem' }}>{faq.icon}</span>
             <span style={{ flex: 1 }}>{faq.question}</span>
-            <motion.div
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-            >
+            <span style={{
+                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s',
+                display: 'flex'
+            }}>
                 <ChevronRight size={20} />
-            </motion.div>
+            </span>
         </button>
 
-        <AnimatePresence>
-            {isExpanded && (
-                <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    style={{
-                        borderTop: '1px solid rgba(255,255,255,0.05)',
-                        padding: '20px',
-                        paddingTop: '12px'
-                    }}
-                >
-                    <p style={{ color: '#cbd5e1', lineHeight: '1.7', whiteSpace: 'pre-wrap', margin: 0 }}>
-                        {faq.answer}
-                    </p>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    </motion.div>
+        {isExpanded && (
+            <div style={{
+                borderTop: '1px solid rgba(255,255,255,0.05)',
+                padding: '20px',
+                paddingTop: '12px'
+            }}>
+                <p style={{ color: '#cbd5e1', lineHeight: '1.7', whiteSpace: 'pre-wrap', margin: 0 }}>
+                    {faq.answer}
+                </p>
+            </div>
+        )}
+    </div>
 );
 
 const LearningPathCard = ({ path, index }) => (
