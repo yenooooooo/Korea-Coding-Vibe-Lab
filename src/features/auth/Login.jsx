@@ -16,14 +16,19 @@ const Login = () => {
         setLoading(true)
         setError(null)
 
-        const { error } = await signIn(email, password)
-
-        if (error) {
-            setError(error.message)
+        try {
+            const { error } = await signIn(email, password)
+            if (error) {
+                setError(error.message)
+                setLoading(false)
+            } else {
+                setLoading(false)
+                navigate('/')
+            }
+        } catch (err) {
+            // 타임아웃 또는 네트워크 에러
+            setError(err.message)
             setLoading(false)
-        } else {
-            setLoading(false)
-            navigate('/')
         }
     }
 

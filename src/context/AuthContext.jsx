@@ -108,11 +108,24 @@ export const AuthProvider = ({ children }) => {
     }, [user]);
 
     const signUp = async (email, password) => {
-        return supabase.auth.signUp({ email, password })
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('회원가입 요청 시간 초과 — 광고차단기가 Supabase를 차단하고 있을 수 있습니다.')), 10000)
+        );
+        return Promise.race([
+            supabase.auth.signUp({ email, password }),
+            timeout
+        ]);
     }
 
     const signIn = async (email, password) => {
-        return supabase.auth.signInWithPassword({ email, password })
+        // 네트워크 차단 시 무한 대기 방지 (10초 타임아웃)
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('로그인 요청 시간 초과 — 광고차단기가 Supabase를 차단하고 있을 수 있습니다. 시크릿 모드에서 시도하거나 광고차단기를 비활성화해주세요.')), 10000)
+        );
+        return Promise.race([
+            supabase.auth.signInWithPassword({ email, password }),
+            timeout
+        ]);
     }
 
     const signInWithOAuth = async (provider) => {
