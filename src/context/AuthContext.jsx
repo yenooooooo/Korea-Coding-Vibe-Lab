@@ -59,8 +59,15 @@ export const AuthProvider = ({ children }) => {
             setUser(session?.user ?? null)
             if (session?.user) await fetchProfile(session.user.id);
             setLoading(false)
-        }).catch((err) => {
+        }).catch(async (err) => {
             console.error('getSession failed:', err);
+            // Refresh token 무효 시 세션 정리
+            if (err?.message?.includes('Refresh Token') || err?.name === 'AuthApiError') {
+                console.warn('Invalid session detected, clearing...');
+                await supabase.auth.signOut().catch(() => {});
+                setUser(null);
+                setProfile(null);
+            }
             clearTimeout(safetyTimer);
             setLoading(false);
         })
@@ -132,7 +139,14 @@ export const AuthProvider = ({ children }) => {
     }
 
     const signOut = async () => {
-        return supabase.auth.signOut()
+        try {
+            await supabase.auth.signOut();
+        } catch (err) {
+            console.warn('signOut API failed, clearing locally:', err);
+        }
+        // 토큰 무효 상태에서도 확실히 로컬 세션 정리
+        setUser(null);
+        setProfile(null);
     }
 
     const value = {
